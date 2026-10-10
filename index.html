@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KOL Operations Workspace</title>
+<style>
+:root { color-scheme: light dark; --bg: light-dark(#f5f7fb,#10141c); --surface: light-dark(#ffffff,#191f2a); --surface2: light-dark(#f8faff,#202735); --text: light-dark(#172033,#edf2fb); --muted: light-dark(#68758b,#a0adc1); --border: light-dark(#e4e9f2,#303a4a); --accent: light-dark(#6658e8,#a69cff); --accent-soft: light-dark(#efedff,#302b55); --green: light-dark(#16845b,#68d8a7); --green-soft: light-dark(#e5f7ef,#183a31); --amber: light-dark(#a7650c,#f3c06a); --amber-soft: light-dark(#fff3dc,#42331b); --red: light-dark(#c34554,#ff8e9a); --red-soft: light-dark(#ffebee,#48242b); }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+.app { min-height: 100vh; width: 100%; background: var(--bg); }
+.sidebar { position: fixed; inset: 0 auto 0 0; width: 232px; background: var(--surface); border-right: 1px solid var(--border); padding: 22px 14px; display: flex; flex-direction: column; z-index: 5; }
+.brand { display:flex; align-items:center; gap:10px; padding: 0 10px 24px; font-weight:800; letter-spacing:-.3px; }
+.brand-mark { width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#796df4,#4e43bf);display:grid;place-items:center;color:white;font-weight:900;flex-shrink:0; }
+.brand-name { font-size:13px; line-height:1.3; font-weight:800; }
+.nav-label { color:var(--muted); font-size:10px; font-weight:800; letter-spacing:1.4px; padding:16px 12px 7px; }
+.nav { display:flex; align-items:center; gap:11px; width:100%; border:0; background:transparent; color:var(--muted); padding:11px 12px; border-radius:10px; text-align:left; font-size:13px; margin:2px 0; }
+.nav:hover { background:var(--surface2); color:var(--text); }
+.nav.active { background:var(--accent-soft); color:var(--accent); font-weight:700; }
+.nav .ico { width:18px; text-align:center; font-size:16px; }
+.side-bottom { margin-top:auto; border-top:1px solid var(--border); padding:15px 8px 0; display:flex; gap:10px; align-items:center; }
+.avatar { width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:12px; }
+.side-bottom strong { display:block;font-size:12px; }.side-bottom small { color:var(--muted);font-size:11px; }
+.main { margin-left:232px; min-height:100vh; }
+.topbar { height:70px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 30px; position:sticky;top:0;z-index:4; }
+.crumb { color:var(--muted);font-size:12px; }.crumb strong { color:var(--text);font-weight:700; }
+.top-actions { display:flex;align-items:center;gap:10px; }.search { background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;width:220px;color:var(--text);font-size:12px; }
+.content { padding:28px 30px 50px; max-width:1500px; margin:0 auto; }
+.page-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:24px; }.eyebrow { color:var(--accent);font-size:10px;font-weight:800;letter-spacing:1.6px;margin-bottom:8px; }.page-head h1 { margin:0;font-size:25px;letter-spacing:-.8px; }.page-head p { margin:8px 0 0;color:var(--muted);font-size:13px; }
+.btn { border:1px solid var(--border); background:var(--surface); color:var(--text); border-radius:9px; padding:9px 13px; font-size:12px; font-weight:650; display:inline-flex; align-items:center; gap:7px; justify-content:center; }
+.btn:hover { border-color:var(--accent); }.btn.primary { background:var(--accent);color:white;border-color:var(--accent); }.btn.ghost { background:transparent; }.btn.good { background:var(--green-soft);color:var(--green);border-color:transparent; }.btn.danger { background:var(--red-soft);color:var(--red);border-color:transparent; }
+.btn.small { padding:6px 10px; font-size:11px; }
+.stats { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px; }.stat { background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px; }.stat-top { display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px; }.stat-icon { width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:16px; }.stat-value { font-size:27px;font-weight:800;letter-spacing:-1px;margin:13px 0 6px; }.stat-foot { color:var(--muted);font-size:11px; }.stat-foot b { color:var(--green);font-weight:700; }
+.grid { display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,.85fr);gap:16px;margin-bottom:18px; }.panel { background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden; }.panel-head { padding:17px 19px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--border);flex-wrap:wrap; }.panel-head h2 { margin:0;font-size:14px; }.panel-head p { margin:5px 0 0;color:var(--muted);font-size:11px; }.panel-body { padding:17px 19px; }.pill { display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:5px 8px;font-size:10px;font-weight:750;white-space:nowrap;background:var(--surface2);color:var(--muted); }.pill.green { background:var(--green-soft);color:var(--green); }.pill.amber { background:var(--amber-soft);color:var(--amber); }.pill.red { background:var(--red-soft);color:var(--red); }.pill.purple { background:var(--accent-soft);color:var(--accent); }
+.task-list { display:flex;flex-direction:column;gap:0; }.task { display:flex;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--border); }.task:last-child { border-bottom:0;padding-bottom:0; }.task:first-child { padding-top:0; }.task-icon { flex-shrink:0;width:34px;height:34px;border-radius:10px;background:var(--surface2);display:grid;place-items:center; }.task-main { flex:1;min-width:0; }.task-main strong { display:block;font-size:12px;margin-bottom:4px; }.task-main small { color:var(--muted);font-size:11px; }.task .btn { padding:7px 10px;font-size:11px; }
+.funnel { display:flex;flex-direction:column;gap:12px; }.funnel-row { display:grid;grid-template-columns:88px 1fr 32px;gap:10px;align-items:center;font-size:11px; }.funnel-row label { color:var(--muted); }.bar { height:7px;background:var(--surface2);border-radius:99px;overflow:hidden; }.bar span { display:block;height:100%;background:var(--accent);border-radius:99px; }.funnel-row b { text-align:right;font-size:12px; }
+.table-wrap { overflow:auto; }.data-table { width:100%;border-collapse:collapse;min-width:760px; }.data-table th { text-align:left;color:var(--muted);font-size:10px;font-weight:750;letter-spacing:.2px;background:var(--surface2);padding:12px 16px;white-space:nowrap; }.data-table td { padding:14px 16px;border-top:1px solid var(--border);font-size:12px;vertical-align:top; }.data-table tbody tr:hover { background:color-mix(in srgb,var(--accent-soft) 25%,transparent); }.person { display:flex;gap:9px;align-items:center; }.person .avatar { width:31px;height:31px; }.person strong { display:block;font-size:12px; }.person small { display:block;color:var(--muted);font-size:10px;margin-top:3px; }.muted { color:var(--muted); }.table-action { color:var(--accent);background:none;border:0;font-size:11px;font-weight:700;padding:4px; }.table-action.danger { color:var(--red); }.readonly-tag { color:var(--muted);font-size:10px; }
+.section { display:none; }.section.active { display:block; }.toolbar { display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px;flex-wrap:wrap; }.toolbar-left,.toolbar-right { display:flex;gap:8px;align-items:center;flex-wrap:wrap; }.empty { padding:35px 20px;text-align:center;color:var(--muted);font-size:12px; }.empty span { display:block;font-size:26px;margin-bottom:9px; }.step-row { display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-bottom:18px; }.step { border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:12px; }.step b { display:block;font-size:12px;margin-bottom:5px; }.step small { color:var(--muted);font-size:10px; }.step .num { color:var(--accent);font-weight:800;font-size:10px;margin-bottom:8px; }
+.modal-backdrop { position:fixed;inset:0;background:rgba(8,12,24,.55);z-index:20;display:none;align-items:center;justify-content:center;padding:18px; }.modal-backdrop.open { display:flex; }.modal { width:min(720px,100%);max-height:90vh;overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.25); }.modal-head { padding:19px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center; }.modal-head h2 { margin:0;font-size:16px; }.close { border:0;background:transparent;color:var(--muted);font-size:22px; }.modal-body { padding:20px 22px; }.form-grid { display:grid;grid-template-columns:1fr 1fr;gap:14px; }.field { display:flex;flex-direction:column;gap:7px; }.field.full { grid-column:1/-1; }.field label { font-size:11px;font-weight:700;color:var(--muted); }.field input,.field select,.field textarea { width:100%;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:10px 11px;font-size:12px;outline:none; }.field input:focus,.field select:focus,.field textarea:focus { border-color:var(--accent); }.field input[readonly] { opacity:.7; cursor:not-allowed; }.field textarea { min-height:75px;resize:vertical; }.modal-foot { display:flex;justify-content:flex-end;gap:9px;padding:15px 22px;border-top:1px solid var(--border); }.notice { border:1px solid var(--border);background:var(--surface2);padding:12px 14px;border-radius:10px;color:var(--muted);font-size:11px;line-height:1.6;margin-bottom:15px; }.notice b { color:var(--text); }.toast { position:fixed;bottom:24px;right:24px;background:var(--text);color:var(--surface);padding:12px 16px;border-radius:10px;font-size:12px;box-shadow:0 10px 30px #0002;display:none;z-index:30; }.toast.show { display:block;animation:fade 2.8s forwards; } @keyframes fade { 0%,75%{opacity:1}100%{opacity:0} }
+.role-menu { position:fixed;left:14px;bottom:70px;width:250px;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.25);padding:10px;z-index:30;display:none; }
+.role-menu.open { display:block; }
+.role-menu-title { font-size:10px;font-weight:800;letter-spacing:1.2px;color:var(--muted);padding:6px 10px 8px; }
+.role-item { display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--text);padding:9px 10px;border-radius:9px;text-align:left;font-size:12px; }
+.role-item:hover { background:var(--surface2); }
+.role-item.active { background:var(--accent-soft);color:var(--accent);font-weight:700; }
+.role-item .role-ico { width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:11px;background:var(--surface2);color:var(--muted);flex-shrink:0; }
+.role-item.active .role-ico { background:var(--accent);color:white; }
+.role-item .role-meta { min-width:0; }
+.role-item .role-meta strong { display:block;font-size:12px; }
+.role-item .role-meta small { color:var(--muted);font-size:10px; }
+.role-menu-sep { height:1px;background:var(--border);margin:8px 4px; }
+.permission-hint { border:1px dashed var(--border);background:var(--surface2);color:var(--muted);padding:11px 14px;border-radius:10px;font-size:11px;line-height:1.6;margin-bottom:16px; }
+.permission-hint b { color:var(--text); }
+.multi-row { display:flex;flex-direction:column;gap:8px; }
+.multi-item { display:grid;gap:8px;align-items:center; }
+.multi-item.cols-2 { grid-template-columns:1fr 2fr auto; }
+.multi-item.cols-2b { grid-template-columns:1fr 1fr; }
+.multi-item.cols-4 { grid-template-columns:1fr 1.6fr 1fr 1fr auto; }
+.multi-item input,.multi-item select { width:100%;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:8px;padding:9px 10px;font-size:12px;outline:none; }
+.multi-item input:focus,.multi-item select:focus { border-color:var(--accent); }
+.multi-item .icon-btn { width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);display:grid;place-items:center;font-size:14px; }
+.multi-item .icon-btn:hover { border-color:var(--red);color:var(--red); }
+.multi-add { margin-top:8px; }
+.detail-list { display:flex;flex-direction:column;gap:10px; }
+.detail-row { display:grid;grid-template-columns:120px 1fr;gap:12px;font-size:12px; }
+.detail-row .k { color:var(--muted); }
+.detail-row .v { color:var(--text); }
+.history-item { border:1px solid var(--border);border-radius:10px;padding:12px;background:var(--surface2); }
+.history-item + .history-item { margin-top:10px; }
+.history-item h4 { margin:0 0 8px;font-size:12px;color:var(--accent); }
+.history-item .row { font-size:11px;line-height:1.7; }
+.history-item .row b { color:var(--text); }
+.history-item .row span { color:var(--muted); }
+
+.login-screen { position:fixed; inset:0; background:linear-gradient(135deg,color-mix(in srgb,var(--accent-soft) 60%,var(--bg)),var(--bg)); z-index:50; display:flex; align-items:center; justify-content:center; padding:24px; }
+.login-screen.hidden { display:none; }
+.login-card { width:min(520px,100%); background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px; box-shadow:0 30px 80px rgba(0,0,0,.18); }
+.login-brand { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+.login-title { font-size:18px; font-weight:800; letter-spacing:-.3px; }
+.login-sub { font-size:10px; color:var(--muted); letter-spacing:1.5px; margin-top:3px; }
+.login-hint { color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 18px; }
+.login-accounts { display:flex; flex-direction:column; gap:10px; }
+.login-account { display:flex; align-items:center; gap:12px; width:100%; border:1px solid var(--border); background:var(--surface2); color:var(--text); padding:12px 14px; border-radius:12px; text-align:left; transition:border-color .15s,transform .15s; }
+.login-account:hover { border-color:var(--accent); transform:translateY(-1px); }
+.login-account .acc-avatar { width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:13px; color:white; flex-shrink:0; }
+.login-account .acc-meta { flex:1; min-width:0; }
+.login-account .acc-meta strong { display:block; font-size:13px; }
+.login-account .acc-meta small { display:block; color:var(--muted); font-size:11px; margin-top:3px; }
+.login-account .acc-arrow { color:var(--muted); font-size:16px; }
+.login-foot { margin-top:20px; text-align:center; font-size:10px; }
+
+@media(max-width:1000px){.sidebar{width:70px;padding:18px 9px}.brand{padding:0 8px 24px}.brand-name,.nav-label,.nav .nav-text,.side-bottom .user-info{display:none}.nav{justify-content:center;padding:12px 0}.nav .ico{font-size:18px}.side-bottom{justify-content:center;padding:15px 0 0}.main{margin-left:70px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}.step-row{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.topbar{padding:0 15px}.content{padding:22px 14px}.search{width:145px}.page-head h1{font-size:21px}.stats{gap:9px}.stat{padding:13px}.stat-value{font-size:23px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.step-row{grid-template-columns:repeat(2,minmax(0,1fr))}.top-actions .btn{display:none}.multi-item.cols-2,.multi-item.cols-4{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-mark">K</div>
+      <div>
+        <div class="login-title">KOL Operations Workspace</div>
+        <div class="login-sub">DEMO · by kittyhebewang</div>
+      </div>
+    </div>
+    <p class="login-hint">选择一个虚拟账号进入演示。密码已预填，点击即可登录。</p>
+    <div class="login-accounts" id="loginAccounts"></div>
+    <div class="login-foot"><span class="muted">演示原型 · 数据保存在本地浏览器</span></div>
+  </div>
+</div>
+
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-mark">K</div><div class="brand-name">KOL Operations Workspace</div></div>
+  <div class="nav-label">WORKSPACE</div>
+  <button class="nav active" data-page="overview"><span class="ico">⌂</span><span class="nav-text">总览</span></button>
+  <button class="nav" data-page="creators"><span class="ico">♙</span><span class="nav-text">达人库</span></button>
+  <button class="nav" data-page="quotes"><span class="ico">＄</span><span class="nav-text">报价管理</span></button>
+  <button class="nav" data-page="contracts"><span class="ico">▤</span><span class="nav-text">合同管理</span></button>
+  <button class="nav" data-page="deliveries"><span class="ico">▶</span><span class="nav-text">视频交付</span></button>
+  <button class="nav" data-page="payments"><span class="ico">￥</span><span class="nav-text">付款管理</span></button>
+  <button class="nav" data-page="team"><span class="ico">⚙</span><span class="nav-text">团队与权限</span></button>
+  <div class="side-bottom" onclick="toggleAccountMenu(event)" style="cursor:pointer;position:relative">
+    <div class="avatar" id="userAvatar">HE</div>
+    <div class="user-info">
+      <strong id="userName">Hebe</strong>
+      <small id="userRole">运营 · Demo</small>
+    </div>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div class="crumb">KOL OPERATIONS <span style="padding:0 7px">/</span> <strong id="crumb">总览</strong></div>
+    <div class="top-actions">
+      <input class="search" id="globalSearch" placeholder="⌕ 搜索达人 / 项目 / 合同"/>
+      <button class="btn" onclick="resetDemo()">⟲ 重置演示数据</button>
+    </div>
+  </header>
+  <div class="content">
+    <div class="permission-hint" id="permissionHint"></div>
+
+    <section class="section active" id="page-overview">
+      <div class="page-head"><div><h1>总览</h1><p>这是团队 KOL 合作进度概览。优先处理待审核、待交付和待付款事项。</p></div><button class="btn" onclick="renderOverview();showToast('数据已刷新')">↻ 刷新数据</button></div>
+
+      <div id="overviewStatsBlock">
+        <div class="stats">
+          <div class="stat"><div class="stat-top">达人总数 <span class="stat-icon">♙</span></div><div class="stat-value" id="statCreators">128</div><div class="stat-foot"><b>+12</b> 本月新增</div></div>
+          <div class="stat"><div class="stat-top">待审核报价 <span class="stat-icon">◷</span></div><div class="stat-value" id="statQuotes">4</div><div class="stat-foot">需要主管确认预算</div></div>
+          <div class="stat"><div class="stat-top">进行中合作 <span class="stat-icon">◇</span></div><div class="stat-value" id="statProjects">16</div><div class="stat-foot">包含内容制作与发布</div></div>
+          <div class="stat"><div class="stat-top">本月已发布视频数 <span class="stat-icon">▶</span></div><div class="stat-value" id="statVideos">0</div><div class="stat-foot"><b id="statVideosToday">+0</b> 今日新增</div></div>
+        </div>
+      </div>
+
+      <div class="grid" id="overviewGrid">
+        <div class="panel"><div class="panel-head"><div><h2>待办事项</h2><p id="taskSubtitle">按当前流程状态自动汇总</p></div><span class="pill amber" id="taskCount">5 项待处理</span></div><div class="panel-body"><div class="task-list" id="taskList"></div></div></div>
+        <div class="panel" id="funnelPanel"><div class="panel-head"><div><h2>合作流程概览</h2><p>本月各阶段业务量（演示数据）</p></div></div><div class="panel-body"><div class="funnel" id="funnel"></div></div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><h2>合作项目</h2><p>每次合作或复投单独建单，统一追踪交付、合同和付款</p></div>
+          <div class="toolbar-left">
+            <input class="filter" id="projectSearch" placeholder="搜索项目 / 达人 / Campaign" oninput="renderProjects()">
+            <select class="filter" id="projectStatus" onchange="renderProjects()">
+              <option value="">全部状态</option><option>进行中</option><option>待签合同</option><option>待交付</option><option>已完成</option>
+            </select>
+            <button class="btn" onclick="exportCSV('projects')">⇩ 导出 CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>合作单号</th><th>项目 / Campaign</th><th>达人</th><th>负责人</th><th>金额</th><th>交付进度</th><th>状态</th><th>操作</th></tr></thead><tbody id="projectRows"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="section" id="page-creators">
+      <div class="page-head"><div><h1>达人库</h1><p>统一维护达人主档，报价、项目、合同和视频交付都从这里关联。</p></div><span id="creatorAddSlot"></span></div>
+      <div class="toolbar"><div class="toolbar-left"><input class="filter" id="creatorSearch" placeholder="搜索昵称 / 邮箱" oninput="renderCreators()"><select class="filter" id="creatorRegion" onchange="renderCreators()"><option value="">全部地区</option><option>日本</option><option>美国</option><option>印尼</option><option>菲律宾</option></select><select class="filter" id="creatorPlatform" onchange="renderCreators()"><option value="">全部平台</option><option>TikTok</option><option>Instagram</option><option>YouTube</option><option>X</option></select><select class="filter" id="creatorStatus" onchange="renderCreators()"><option value="">全部状态</option><option>待联系</option><option>已建联</option><option>合作中</option><option>已合作</option></select></div><div class="toolbar-right"><button class="btn" onclick="exportCSV('creators')">⇩ 导出 CSV</button></div></div>
+      <div class="panel"><div class="table-wrap"><table class="data-table"><thead><tr><th>达人</th><th>地区 / 语言</th><th>主要平台</th><th>平台链接</th><th>跟进人</th><th>合作状态</th><th>操作</th></tr></thead><tbody id="creatorRows"></tbody></table></div></div>
+    </section>
+
+    <section class="section" id="page-quotes">
+      <div class="page-head"><div><h1>报价管理</h1><p>运营提交报价，主管审核通过或驳回；已驳回后可修改重新提交。</p></div><span id="quoteAddSlot"></span></div>
+      <div class="step-row"><div class="step"><div class="num">STEP 01</div><b>运营提交</b><small>填写报价与交付范围</small></div><div class="step"><div class="num">STEP 02</div><b>主管审核</b><small>审批预算 / 驳回修改</small></div><div class="step"><div class="num">STEP 03</div><b>确认报价</b><small>记录最终谈妥金额</small></div><div class="step"><div class="num">STEP 04</div><b>建立合作</b><small>生成独立合作单</small></div><div class="step"><div class="num">STEP 05</div><b>签署合同</b><small>绑定合同与付款条件</small></div><div class="step"><div class="num">STEP 06</div><b>交付付款</b><small>视频授权与财务结算</small></div></div>
+      <div class="toolbar"><div class="toolbar-left"><select class="filter" id="quoteFilter" onchange="renderQuotes()"><option value="">全部报价状态</option><option>待审核</option><option>已通过</option><option>已驳回</option></select></div><div class="toolbar-right"><button class="btn" onclick="exportCSV('quotes')">⇩ 导出 CSV</button></div></div>
+      <div class="panel"><div class="table-wrap"><table class="data-table"><thead><tr><th>达人</th><th>项目 / Campaign</th><th>报价金额</th><th>授权 / 平台</th><th>申请人</th><th>状态</th><th>操作</th></tr></thead><tbody id="quoteRows"></tbody></table></div></div>
+    </section>
+
+    <section class="section" id="page-contracts">
+      <div class="page-head"><div><h1>合同管理</h1><p>合作项目自动生成合同，由合作项目负责人上传合同文件，主管确认。</p></div></div>
+      <div class="notice"><b>流程：</b>报价审核通过 → 自动生成合作单与合同（待上传）→ 项目负责人上传合同 → 待确认 → 主管确认 → 已确认。</div>
+      <div class="toolbar"><div class="toolbar-left"><input class="filter" id="contractSearch" placeholder="搜索合同编号 / 达人" oninput="renderContracts()"><select class="filter" id="contractStatus" onchange="renderContracts()"><option value="">全部签署状态</option><option>待上传</option><option>待确认</option><option>已确认</option><option>需修改</option></select></div><button class="btn" onclick="exportCSV('contracts')">⇩ 导出 CSV</button></div>
+      <div class="panel"><div class="table-wrap"><table class="data-table"><thead><tr><th>合同编号</th><th>达人 / 合作单</th><th>跟进人</th><th>合同金额</th><th>签署状态</th><th>操作</th></tr></thead><tbody id="contractRows"></tbody></table></div></div>
+    </section>
+
+    <section class="section" id="page-deliveries">
+      <div class="page-head"><div><h1>视频交付</h1><p>按合作单提交发布链接、发布日期、Spark Ads / Meta 授权码，方便后续核验。</p></div><span id="deliveryAddSlot"></span></div>
+      <div class="notice"><b>授权到期日：</b>系统会根据每条视频的发布日期 + 该合作单报价的广告授权天数自动计算。</div>
+      <div class="toolbar"><div class="toolbar-left"><input class="filter" id="deliverySearch" placeholder="搜索达人 / 视频链接 / 授权码" oninput="renderDeliveries()"><select class="filter" id="deliveryStatus" onchange="renderDeliveries()"><option value="">全部审核状态</option><option>待审核</option><option>已确认</option><option>需修改</option></select></div><button class="btn" onclick="exportCSV('deliveries')">⇩ 导出 CSV</button></div>
+      <div class="panel"><div class="table-wrap"><table class="data-table"><thead><tr><th>达人 / 合作单</th><th>跟进人</th><th>平台</th><th>视频链接</th><th>广告授权码</th><th>授权到期日</th><th>审核状态</th><th>操作</th></tr></thead><tbody id="deliveryRows"></tbody></table></div></div>
+    </section>
+
+    <section class="section" id="page-payments">
+      <div class="page-head"><div><h1>付款管理</h1><p>交付确认后自动生成付款单（资料缺失），由项目负责人补资料后提交财务。</p></div></div>
+      <div class="stats" id="paymentStatsBlock">
+        <div class="stat"><div class="stat-top">待付款合同数 <span class="stat-icon">▤</span></div><div class="stat-value" id="payReady">0</div><div class="stat-foot">已确认 + 已交付 + 未付款</div></div>
+        <div class="stat"><div class="stat-top">审批中 <span class="stat-icon">◷</span></div><div class="stat-value" id="payPending">$2,080</div><div class="stat-foot">等待财务核对或执行</div></div>
+        <div class="stat"><div class="stat-top">本月已付款 <span class="stat-icon">✓</span></div><div class="stat-value" id="payDone">$8,640</div><div class="stat-foot">已上传付款凭证</div></div>
+        <div class="stat"><div class="stat-top">异常 / 资料缺失 <span class="stat-icon">!</span></div><div class="stat-value" id="payIssue">2</div><div class="stat-foot">需运营补充信息</div></div>
+      </div>
+      <div class="toolbar"><div class="toolbar-left"><input class="filter" id="paymentSearch" placeholder="搜索达人 / 合同 / 付款单号" oninput="renderPayments()"><select class="filter" id="paymentStatus" onchange="renderPayments()"><option value="">全部付款状态</option><option>待财务审核</option><option>付款处理中</option><option>已付款</option><option>资料缺失</option></select></div><button class="btn" onclick="exportCSV('payments')">⇩ 导出 CSV</button></div>
+      <div class="panel"><div class="table-wrap"><table class="data-table"><thead><tr><th>付款单号</th><th>达人 / 合同</th><th>跟进人</th><th>应付金额</th><th>付款方式</th><th>Invoice</th><th>状态</th><th>操作</th></tr></thead><tbody id="paymentRows"></tbody></table></div></div>
+    </section>
+
+    <section class="section" id="page-team">
+      <div class="page-head"><div><h1>团队与权限</h1><p>原型中的角色权限说明。正式部署时需要接入真实登录和服务端权限校验。</p></div></div>
+
+      <div class="panel" style="margin-bottom:16px">
+        <div class="panel-head"><div><h2>权限矩阵</h2><p>行 = 功能点，列 = 身份；高亮列为当前登录身份</p></div></div>
+        <div class="table-wrap" id="permMatrix"></div>
+      </div>
+
+      <div class="grid">
+        <div class="panel"><div class="panel-head"><h2>角色职责</h2></div><div class="panel-body task-list">
+          <div class="task"><div class="task-icon">♙</div><div class="task-main"><strong>运营</strong><small>达人录入、报价申请、合作建单、合同资料、内容交付、付款补资料</small></div><span class="pill purple">编辑</span></div>
+          <div class="task"><div class="task-icon">✓</div><div class="task-main"><strong>主管</strong><small>拥有运营全部权限，并负责报价审核、预算确认、合同 / 交付确认</small></div><span class="pill amber">运营 + 审批</span></div>
+          <div class="task"><div class="task-icon">￥</div><div class="task-main"><strong>财务</strong><small>查看合同与已批准付款、核对收款信息、登记付款凭证、催补资料</small></div><span class="pill green">付款</span></div>
+          <div class="task"><div class="task-icon">⚙</div><div class="task-main"><strong>管理员</strong><small>账号与角色管理、全量数据、字段配置、审计日志、导入导出</small></div><span class="pill">管理</span></div>
+        </div></div>
+        <div class="panel"><div class="panel-head"><h2>上线前需要补齐</h2></div><div class="panel-body task-list">
+          <div class="task"><div class="task-icon">🔐</div><div class="task-main"><strong>真实账号与权限</strong><small>不允许仅依赖前端隐藏按钮控制权限</small></div></div>
+          <div class="task"><div class="task-icon">🗄</div><div class="task-main"><strong>数据库与备份</strong><small>多人同时录入，保留变更历史与可恢复备份</small></div></div>
+          <div class="task"><div class="task-icon">📎</div><div class="task-main"><strong>合同文件安全存储</strong><small>收款账号、合同、Invoice 应有最小访问权限</small></div></div>
+          <div class="task"><div class="task-icon">🧾</div><div class="task-main"><strong>审批与付款审计</strong><small>记录申请人、审批人、时间、驳回原因和付款凭证</small></div></div>
+        </div></div>
+      </div>
+    </section>
+  </div>
+</main>
+</div>
+
+<div class="role-menu" id="roleMenu">
+  <div class="role-menu-title">切换身份（演示）</div>
+  <div id="roleList"></div>
+  <div class="role-menu-sep"></div>
+  <button class="role-item" onclick="showToast('账号设置（演示）')"><span class="role-ico">⚙</span><div class="role-meta"><strong>账号设置</strong><small>通知 / 偏好 / 安全</small></div></button>
+  <button class="role-item" onclick="logout()"><span class="role-ico" style="color:var(--red)">⎋</span><div class="role-meta"><strong style="color:var(--red)">退出登录</strong><small>返回登录页（演示）</small></div></button>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-head"><h2 id="modalTitle">新增记录</h2><button class="close" onclick="closeModal()">×</button></div><form id="modalForm"><div class="modal-body" id="modalBody"></div><div class="modal-foot" id="modalFoot"><button type="button" class="btn" onclick="closeModal()">取消</button><button type="submit" class="btn primary">保存记录</button></div></form></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== 常量 ========== */
+const STORAGE_KEY='kol-ops-demo-v19';
+const USER_KEY='kol-ops-user-v19';
+const titles={overview:'总览',creators:'达人库',quotes:'报价管理',contracts:'合同管理',deliveries:'视频交付',payments:'付款管理',team:'团队与权限'};
+const currencyByRegion={'日本':'JPY','美国':'USD','印尼':'IDR','菲律宾':'PHP','英国':'GBP'};
+const demoUsdRates={USD:1,JPY:0.0067,IDR:0.000061,PHP:0.0175,GBP:1.29};
+const PLATFORM_OPTIONS=['TikTok','Instagram','YouTube','X','其他'];
+
+function dateOffset(daysFromToday){
+  const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+daysFromToday);
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+
+/* ========== 角色与权限 ========== */
+const OPS_ACTIONS = {
+  'creator.create':true,'creator.status':true,
+  'quote.create':true,'quote.review':false,
+  'contract.upload':true,'contract.sign':false,
+  'delivery.create':true,'delivery.review':false,
+  'payment.fill':true,'payment.approve':false,'payment.remind':true
+};
+
+const ROLES = {
+  ops:{ key:'ops', name:'Hebe', label:'运营',
+    desc:'可录入达人、提交报价、建合作单、上传合同资料、提交视频交付、补付款资料',
+    pages:['overview','creators','quotes','contracts','deliveries','payments'],
+    actions:{...OPS_ACTIONS}
+  },
+  lead:{ key:'lead', name:'Ken', label:'主管',
+    desc:'拥有运营全部权限，并额外负责报价审核、合同确认、交付确认',
+    pages:['overview','creators','quotes','contracts','deliveries','payments'],
+    actions:{...OPS_ACTIONS,
+      'quote.review':true,'contract.sign':true,'delivery.review':true,'payment.approve':false
+    }
+  },
+  finance:{ key:'finance', name:'Rin', label:'财务',
+    desc:'核对合同与 Invoice、处理付款、上传付款凭证、催补资料；只能看合同与付款',
+    pages:['overview','contracts','payments'],
+    actions:{
+      'creator.create':false,'creator.status':false,
+      'quote.create':false,'quote.review':false,
+      'contract.upload':false,'contract.sign':false,
+      'delivery.create':false,'delivery.review':false,
+      'payment.fill':false,'payment.approve':true,'payment.remind':true
+    }
+  },
+  admin:{ key:'admin', name:'Admin', label:'管理员',
+    desc:'全量数据与全部操作权限，含团队与权限配置',
+    pages:['overview','creators','quotes','contracts','deliveries','payments','team'],
+    actions:{
+      'creator.create':true,'creator.status':true,
+      'quote.create':true,'quote.review':true,
+      'contract.upload':true,'contract.sign':true,
+      'delivery.create':true,'delivery.review':true,
+      'payment.fill':true,'payment.approve':true,'payment.remind':true
+    }
+  }
+};
+
+const ACCOUNTS = [
+  { key:'ops',     email:'hebe@kolops.demo',   password:'ops123',   avatarColor:'#6658e8' },
+  { key:'lead',    email:'ken@kolops.demo',    password:'lead123',  avatarColor:'#c98a14' },
+  { key:'finance', email:'rin@kolops.demo',    password:'fin123',   avatarColor:'#16845b' },
+  { key:'admin',   email:'admin@kolops.demo',  password:'admin123', avatarColor:'#3b4a63' }
+];
+
+const PERM_MATRIX = [
+  { group:'达人库', items:[
+    { perm:'creator.create', label:'新增 / 修改达人' },
+    { perm:'creator.status', label:'更新达人状态' }
+  ]},
+  { group:'报价管理', items:[
+    { perm:'quote.create', label:'提交 / 修改报价' },
+    { perm:'quote.review', label:'审核报价（通过 / 驳回）' }
+  ]},
+  { group:'合同管理', items:[
+    { perm:'contract.upload', label:'上传 / 修改合同文件' },
+    { perm:'contract.sign', label:'确认 / 退回合同' }
+  ]},
+  { group:'视频交付', items:[
+    { perm:'delivery.create', label:'提交 / 修改交付资料' },
+    { perm:'delivery.review', label:'确认 / 退回交付' }
+  ]},
+  { group:'付款管理', items:[
+    { perm:'payment.fill', label:'补资料（提交付款）' },
+    { perm:'payment.approve', label:'处理付款 / 上传凭证' },
+    { perm:'payment.remind', label:'催补资料' }
+  ]}
+];
+
+let currentUser = loadUser();
+function loadUser(){try{const raw=localStorage.getItem(USER_KEY);if(raw&&ROLES[raw])return raw;}catch(e){}return null;}
+function saveUser(k){try{localStorage.setItem(USER_KEY,k);}catch(e){}}
+function clearUser(){try{localStorage.removeItem(USER_KEY);}catch(e){}}
+function role(){return ROLES[currentUser]||ROLES.ops;}
+function can(action){return !!role().actions[action];}
+function canVisit(page){return role().pages.includes(page);}
+
+function autoOwnerName(){
+  if(currentUser==='ops') return 'Hebe';
+  if(currentUser==='lead') return 'Ken';
+  if(currentUser==='finance') return 'Rin';
+  return null;
+}
+function ownerSelectable(){return currentUser==='admin';}
+function showOverviewStats(){return currentUser==='lead'||currentUser==='admin';}
+function showPaymentStats(){return currentUser!=='ops';}
+function isManager(){return currentUser==='lead'||currentUser==='admin';}
+
+/* ========== 工具 ========== */
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function emptyRow(n,msg){return `<tr><td colspan="${n}"><div class="empty"><span>⌕</span>${msg}</div></td></tr>`;}
+function pill(status){let cls='';
+  if(['已通过','已确认','已付款','已完成','完整'].includes(status))cls='green';
+  else if(['待审核','待上传','待确认','待财务审核','待交付','进行中','付款处理中'].includes(status))cls='amber';
+  else if(['已驳回','需修改','资料缺失','需补资料'].includes(status))cls='red';
+  else if(['合作中','待申请'].includes(status))cls='purple';
+  return `<span class="pill ${cls}">${esc(status||'—')}</span>`;
+}
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.remove('show');void el.offsetWidth;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2900);}
+function toUSD(amount,currency){const r=demoUsdRates[currency]||1;return Math.round(Number(amount||0)*r*100)/100;}
+function fmtMoney(amount,currency){const n=Number(amount||0);const c=currency||'USD';
+  if(c==='JPY') return `¥${n.toLocaleString('en-US',{maximumFractionDigits:0})}`;
+  if(c==='IDR') return `Rp${n.toLocaleString('en-US',{maximumFractionDigits:0})}`;
+  if(c==='PHP') return `₱${n.toLocaleString('en-US',{maximumFractionDigits:2})}`;
+  if(c==='GBP') return `£${n.toLocaleString('en-US',{maximumFractionDigits:2})}`;
+  return `$${n.toLocaleString('en-US',{maximumFractionDigits:2})}`;
+}
+function fmtUSD(amount,currency){return `≈ $${toUSD(amount,currency).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;}
+function moneyCell(amount,currency){
+  const c=currency||'USD';
+  if(c==='USD') return `<strong>${fmtMoney(amount,c)}</strong>`;
+  return `<strong>${fmtMoney(amount,c)}</strong><small class="muted" style="display:block;margin-top:4px">${fmtUSD(amount,c)} USD</small>`;
+}
+function deny(label){showToast(`当前身份（${role().label}）无权${label||'执行此操作'}`);}
+function readonlyTag(text){return `<span class="readonly-tag">${esc(text||'仅查看')}</span>`;}
+function multiLine(items,key){return (items||[]).map(v=>esc(v?.[key]||'')).filter(Boolean).join('<br>')||'—';}
+function addDays(dateStr,days){
+  if(!dateStr||!days) return '—';
+  const d=new Date(dateStr); if(isNaN(d)) return '—';
+  d.setDate(d.getDate()+Number(days));
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+function nowStr(){
+  const d=new Date();
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');
+  const hh=String(d.getHours()).padStart(2,'0'),mm=String(d.getMinutes()).padStart(2,'0');
+  return `${y}-${m}-${dd} ${hh}:${mm}`;
+}
+function projectById(id){return state.projects.find(p=>p.id===id);}
+function quoteById(id){return state.quotes.find(q=>q.id===id);}
+function adDaysForProject(projectId){
+  const proj=projectById(projectId);
+  if(!proj) return 0;
+  if(proj.quoteId){
+    const q=quoteById(proj.quoteId);
+    if(q&&q.adDays) return Number(q.adDays);
+  }
+  return 0;
+}
+function ownerOfProject(projectId){const p=projectById(projectId);return p?p.owner:'';}
+function ownerOfContract(contractId){const c=state.contracts.find(x=>x.id===contractId);return c?ownerOfProject(c.project):'';}
+
+/* 动态计算交付进度：分子 = 该合作单下所有交付的 videos.length 之和；分母 = 报价 platforms[].count 之和 */
+function progressOfProject(projectId){
+  const proj=projectById(projectId);
+  if(!proj) return '0/0';
+  let plan=0;
+  if(proj.quoteId){
+    const q=quoteById(proj.quoteId);
+    if(q && q.platforms) plan=q.platforms.reduce((a,p)=>a+Number(p.count||0),0);
+  }
+  let submitted=0;
+  state.deliveries.filter(d=>d.project===projectId).forEach(d=>{
+    submitted += (d.videos||[]).length;
+  });
+  return `${submitted}/${plan}`;
+}
+
+/* 时间比较 / 计数 */
+const timeUtils={
+  sameMonth(dateStr,ref){
+    if(!dateStr) return false;
+    const d=new Date(dateStr); if(isNaN(d)) return false;
+    const r=ref||new Date();
+    return d.getFullYear()===r.getFullYear() && d.getMonth()===r.getMonth();
+  },
+  sameDay(dateStr,ref){
+    if(!dateStr) return false;
+    const d=new Date(dateStr); if(isNaN(d)) return false;
+    const r=ref||new Date();
+    return d.getFullYear()===r.getFullYear() && d.getMonth()===r.getMonth() && d.getDate()===r.getDate();
+  },
+  countPublishedVideos(){
+    let month=0, today=0;
+    state.deliveries.forEach(d=>{
+      (d.videos||[]).forEach(v=>{
+        if(!v.publishDate) return;
+        if(this.sameMonth(v.publishDate)) month++;
+        if(this.sameDay(v.publishDate)) today++;
+      });
+    });
+    return {month, today};
+  }
+};
+
+/* 权限辅助 */
+function canUploadContract(contract){
+  if(isManager()) return can('contract.upload');
+  if(!can('contract.upload')) return false;
+  if(!contract) return false;
+  return ownerOfProject(contract.project)===role().name;
+}
+function canEditQuote(quote){
+  if(isManager()) return can('quote.create');
+  if(!can('quote.create')) return false;
+  if(!quote) return false;
+  return quote.owner===role().name;
+}
+function canFillPayment(payment){
+  if(!payment) return false;
+  const owner=ownerOfContract(payment.contract);
+  if(isManager() && can('payment.fill')) return true;
+  if(can('payment.fill') && owner===role().name) return true;
+  return false;
+}
+function canEditDelivery(delivery){
+  if(!delivery) return false;
+  if(isManager()) return can('delivery.create');
+  if(!can('delivery.create')) return false;
+  return ownerOfProject(delivery.project)===role().name;
+}
+
+function buildOwnerFieldHtml(auto){
+  if(ownerSelectable()){
+    return `<div class="field"><label>跟进人 / 申请人 *</label>
+      <select name="owner" required>
+        <option ${auto==='Hebe'?'selected':''}>Hebe</option>
+        <option ${auto==='Ken'?'selected':''}>Ken</option>
+      </select>
+    </div>`;
+  }
+  return `<div class="field"><label>跟进人 / 申请人</label>
+    <input name="owner" value="${esc(auto)}" readonly />
+    <small class="muted">自动匹配当前登录账号</small>
+  </div>`;
+}
+
+/* ========== 自动生成付款单 ========== */
+function tryAutoCreatePayment(projectId){
+  if(!projectId) return;
+  const proj=projectById(projectId);
+  if(!proj) return;
+  const ctr=state.contracts.find(c=>c.project===projectId);
+  if(!ctr || ctr.status!=='已确认') return;
+  if(!state.deliveries.some(d=>d.project===projectId && d.status==='已确认')) return;
+  if(state.payments.some(p=>p.contract===ctr.id)) return;
+  const id='PAY-'+String(64+state.payments.length-5).padStart(4,'0');
+  state.payments.unshift({
+    id, creator:ctr.creator, contract:ctr.id,
+    amount:ctr.amount, currency:ctr.currency, amountUSD:ctr.amountUSD,
+    method:'', invoice:'', status:'资料缺失'
+  });
+  showToast(`交付已确认，已自动生成付款单 ${id}（资料缺失）`);
+}
+
+/* ========== 演示数据 ========== */
+const TODAY=dateOffset(0);
+const DEFAULT_STATE = {
+  creators:[
+    {id:'KOL-0108',name:'mio',email:'mio.creator@example.com',region:'日本',language:'日语',platforms:[{platform:'Instagram',link:'https://instagram.com/mio'}],owner:'Hebe',status:'合作中',tags:'K-pop / CP'},
+    {id:'KOL-0107',name:'Luna edits',email:'luna@example.com',region:'美国',language:'英语',platforms:[{platform:'TikTok',link:'https://tiktok.com/@luna'},{platform:'Instagram',link:'https://instagram.com/luna'}],owner:'Hebe',status:'已建联',tags:'AI edits'},
+    {id:'KOL-0106',name:'rani.mp4',email:'rani@example.com',region:'印尼',language:'印尼语',platforms:[{platform:'TikTok',link:'https://tiktok.com/@rani'}],owner:'Hebe',status:'已合作',tags:'Fan edit'},
+    {id:'KOL-0105',name:'sora୨୧',email:'sora@example.com',region:'日本',language:'日语',platforms:[{platform:'Instagram',link:'https://instagram.com/sora'}],owner:'Ken',status:'合作中',tags:'Dream girl'},
+    {id:'KOL-0104',name:'itsmej',email:'j.creator@example.com',region:'菲律宾',language:'英语',platforms:[{platform:'YouTube',link:'https://youtube.com/@itsmej'}],owner:'Hebe',status:'合作中',tags:'Lifestyle'},
+    {id:'KOL-0103',name:'hina',email:'hina@example.com',region:'日本',language:'日语',platforms:[{platform:'TikTok',link:'https://tiktok.com/@hina'}],owner:'Hebe',status:'合作中',tags:'Dance'},
+    {id:'KOL-0102',name:'dodo',email:'dodo@example.com',region:'美国',language:'英语',platforms:[{platform:'YouTube',link:'https://youtube.com/@dodo'}],owner:'Hebe',status:'合作中',tags:'Vlog'},
+    {id:'KOL-0101',name:'kiki',email:'kiki@example.com',region:'印尼',language:'印尼语',platforms:[{platform:'Instagram',link:'https://instagram.com/kiki'}],owner:'Ken',status:'已合作',tags:'Beauty'}
+  ],
+  quotes:[
+    {id:'QT-0261',creator:'mio',campaign:'ABC-JP',amount:55000,currency:'JPY',amountUSD:368.50,adDays:30,platforms:[{platform:'TikTok',count:1},{platform:'Instagram',count:1}],owner:'Hebe',status:'已通过',projectId:'COL-2026-018',history:[]},
+    {id:'QT-0260',creator:'Luna edits',campaign:'EFG-Q4',amount:650,currency:'USD',amountUSD:650,adDays:45,platforms:[{platform:'TikTok',count:2}],owner:'Hebe',status:'已通过',projectId:'COL-2026-017',history:[]},
+    {id:'QT-0259',creator:'rani.mp4',campaign:'ABC-ID',amount:3500000,currency:'IDR',amountUSD:213.50,adDays:30,platforms:[{platform:'TikTok',count:1}],owner:'Hebe',status:'已通过',projectId:'COL-2026-016',history:[]},
+    {id:'QT-0258',creator:'sora୨୧',campaign:'ABC-JP',amount:28000,currency:'JPY',amountUSD:187.60,adDays:30,platforms:[{platform:'Instagram',count:1}],owner:'Ken',status:'已驳回',history:[
+      {at:nowStr(),amount:32000,currency:'JPY',amountUSD:214.40,adDays:30,platforms:[{platform:'Instagram',count:1}],note:'',status:'已驳回'}
+    ]},
+    {id:'QT-0257',creator:'hina',campaign:'ABC-JP',amount:42000,currency:'JPY',amountUSD:281.40,adDays:30,platforms:[{platform:'TikTok',count:1}],owner:'Hebe',status:'已通过',projectId:'COL-2026-014',history:[]},
+    {id:'QT-0256',creator:'dodo',campaign:'EFG-Q4',amount:800,currency:'USD',amountUSD:800,adDays:60,platforms:[{platform:'YouTube',count:2}],owner:'Hebe',status:'已通过',projectId:'COL-2026-013',history:[]},
+    {id:'QT-0255',creator:'kiki',campaign:'ABC-ID',amount:4500000,currency:'IDR',amountUSD:274.50,adDays:30,platforms:[{platform:'Instagram',count:1}],owner:'Ken',status:'已通过',projectId:'COL-2026-012',history:[]},
+    {id:'QT-0254',creator:'sora୨୧',campaign:'ABC-JP',amount:28000,currency:'JPY',amountUSD:187.60,adDays:30,platforms:[{platform:'Instagram',count:1}],owner:'Ken',status:'已通过',projectId:'COL-2026-011',history:[]},
+    {id:'QT-0253',creator:'itsmej',campaign:'EFG-Q3',amount:25000,currency:'PHP',amountUSD:437.50,adDays:30,platforms:[{platform:'YouTube',count:2}],owner:'Hebe',status:'已通过',projectId:'COL-2026-015',history:[]}
+  ],
+  projects:[
+    {id:'COL-2026-018',campaign:'ABC-JP',creator:'mio',owner:'Hebe',amount:55000,currency:'JPY',amountUSD:368.50,status:'进行中',quoteId:'QT-0261'},
+    {id:'COL-2026-017',campaign:'EFG-Q4',creator:'Luna edits',owner:'Hebe',amount:650,currency:'USD',amountUSD:650,status:'进行中',quoteId:'QT-0260'},
+    {id:'COL-2026-016',campaign:'ABC-ID',creator:'rani.mp4',owner:'Hebe',amount:3500000,currency:'IDR',amountUSD:213.50,status:'待交付',quoteId:'QT-0259'},
+    {id:'COL-2026-015',campaign:'EFG-Q3',creator:'itsmej',owner:'Hebe',amount:25000,currency:'PHP',amountUSD:437.50,status:'已完成',quoteId:'QT-0253'},
+    {id:'COL-2026-014',campaign:'ABC-JP',creator:'hina',owner:'Hebe',amount:42000,currency:'JPY',amountUSD:281.40,status:'待交付',quoteId:'QT-0257'},
+    {id:'COL-2026-013',campaign:'EFG-Q4',creator:'dodo',owner:'Hebe',amount:800,currency:'USD',amountUSD:800,status:'进行中',quoteId:'QT-0256'},
+    {id:'COL-2026-012',campaign:'ABC-ID',creator:'kiki',owner:'Ken',amount:4500000,currency:'IDR',amountUSD:274.50,status:'已完成',quoteId:'QT-0255'},
+    {id:'COL-2026-011',campaign:'ABC-JP',creator:'sora୨୧',owner:'Ken',amount:28000,currency:'JPY',amountUSD:187.60,status:'待交付',quoteId:'QT-0254'}
+  ],
+  contracts:[
+    {id:'CTR-2026-041',creator:'mio',project:'COL-2026-018',amount:55000,currency:'JPY',amountUSD:368.50,status:'待上传',file:''},
+    {id:'CTR-2026-040',creator:'Luna edits',project:'COL-2026-017',amount:650,currency:'USD',amountUSD:650,status:'待确认',file:'contract-luna.pdf'},
+    {id:'CTR-2026-039',creator:'rani.mp4',project:'COL-2026-016',amount:3500000,currency:'IDR',amountUSD:213.50,status:'已确认',file:'contract-rani.pdf'},
+    {id:'CTR-2026-038',creator:'hina',project:'COL-2026-014',amount:42000,currency:'JPY',amountUSD:281.40,status:'已确认',file:'contract-hina.pdf'},
+    {id:'CTR-2026-037',creator:'dodo',project:'COL-2026-013',amount:800,currency:'USD',amountUSD:800,status:'已确认',file:'contract-dodo.pdf'},
+    {id:'CTR-2026-036',creator:'kiki',project:'COL-2026-012',amount:4500000,currency:'IDR',amountUSD:274.50,status:'已确认',file:'contract-kiki.pdf'},
+    {id:'CTR-2026-035',creator:'itsmej',project:'COL-2026-015',amount:25000,currency:'PHP',amountUSD:437.50,status:'已确认',file:'contract-itsmej.pdf'},
+    {id:'CTR-2026-034',creator:'sora୨୧',project:'COL-2026-011',amount:28000,currency:'JPY',amountUSD:187.60,status:'已确认',file:'contract-sora.pdf'}
+  ],
+  deliveries:[
+    {id:'VD-0082',creator:'mio',project:'COL-2026-018',videos:[{platform:'Instagram',link:'https://instagram.com/reel/demo82',publishDate:TODAY,code:'待提交'}],status:'待审核'},
+    {id:'VD-0081',creator:'rani.mp4',project:'COL-2026-016',videos:[{platform:'TikTok',link:'https://tiktok.com/@rani/video/demo',publishDate:dateOffset(-3),code:'TT-AB12-CD34'}],status:'已确认'},
+    {id:'VD-0080',creator:'itsmej',project:'COL-2026-015',videos:[{platform:'YouTube',link:'https://youtube.com/shorts/demo80',publishDate:dateOffset(-7),code:'—'},{platform:'YouTube',link:'https://youtube.com/shorts/demo80b',publishDate:dateOffset(-7),code:'—'}],status:'已确认'},
+    {id:'VD-0079',creator:'hina',project:'COL-2026-014',videos:[{platform:'TikTok',link:'https://tiktok.com/@hina/video/demo',publishDate:TODAY,code:'TT-HI09-JK12'}],status:'已确认'},
+    {id:'VD-0078',creator:'kiki',project:'COL-2026-012',videos:[{platform:'Instagram',link:'https://instagram.com/reel/kiki',publishDate:dateOffset(-10),code:'IG-KK77-PP88'}],status:'已确认'},
+    {id:'VD-0077',creator:'sora୨୧',project:'COL-2026-011',videos:[{platform:'Instagram',link:'https://instagram.com/reel/sora',publishDate:dateOffset(-5),code:'IG-SR33-XX44'}],status:'已确认'},
+    {id:'VD-0076',creator:'dodo',project:'COL-2026-013',videos:[
+      {platform:'YouTube',link:'https://youtube.com/shorts/dodo1',publishDate:dateOffset(-2),code:'—'},
+      {platform:'YouTube',link:'https://youtube.com/shorts/dodo2',publishDate:TODAY,code:'—'}
+    ],status:'待审核'},
+    {id:'VD-0075',creator:'Luna edits',project:'COL-2026-017',videos:[{platform:'TikTok',link:'https://tiktok.com/@luna/video/demo',publishDate:dateOffset(-1),code:'TT-LU-0001'}],status:'需修改'}
+  ],
+  payments:[
+    {id:'PAY-0065',creator:'sora୨୧',contract:'CTR-2026-034',amount:28000,currency:'JPY',amountUSD:187.60,method:'',invoice:'',status:'资料缺失'},
+    {id:'PAY-0064',creator:'hina',contract:'CTR-2026-038',amount:42000,currency:'JPY',amountUSD:281.40,method:'PayPal',invoice:'invoice-hina.pdf',status:'待财务审核'},
+    {id:'PAY-0063',creator:'dodo',contract:'CTR-2026-037',amount:800,currency:'USD',amountUSD:800,method:'',invoice:'',status:'资料缺失'},
+    {id:'PAY-0062',creator:'kiki',contract:'CTR-2026-036',amount:4500000,currency:'IDR',amountUSD:274.50,method:'银行转账',invoice:'invoice-kiki.pdf',status:'已付款',voucher:'voucher-kiki.pdf'},
+    {id:'PAY-0061',creator:'rani.mp4',contract:'CTR-2026-039',amount:3500000,currency:'IDR',amountUSD:213.50,method:'PayPal',invoice:'invoice-rani.pdf',status:'待财务审核'},
+    {id:'PAY-0059',creator:'itsmej',contract:'CTR-2026-035',amount:25000,currency:'PHP',amountUSD:437.50,method:'银行转账',invoice:'invoice-itsmej.pdf',status:'已付款',voucher:'voucher-itsmej.pdf'}
+  ]
+};
+function loadState(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return JSON.parse(JSON.stringify(DEFAULT_STATE));const p=JSON.parse(raw);const m=JSON.parse(JSON.stringify(DEFAULT_STATE));Object.keys(m).forEach(k=>{if(Array.isArray(p[k]))m[k]=p[k];});return m;}catch(e){return JSON.parse(JSON.stringify(DEFAULT_STATE));}}
+let state=loadState();
+function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}}
+function resetDemo(){if(!confirm('确定重置为初始演示数据？当前修改会丢失。'))return;state=JSON.parse(JSON.stringify(DEFAULT_STATE));saveState();navigate(currentPage);showToast('演示数据已重置');}
+
+/* ========== 登录 ========== */
+function renderLogin(){
+  document.getElementById('loginAccounts').innerHTML=ACCOUNTS.map(a=>{
+    const r=ROLES[a.key];
+    return `<button class="login-account" onclick="loginAs('${a.key}')">
+      <span class="acc-avatar" style="background:${a.avatarColor}">${esc(r.name.slice(0,1).toUpperCase())}</span>
+      <div class="acc-meta">
+        <strong>${esc(r.name)} · ${esc(r.label)}</strong>
+        <small>${esc(a.email)}　·　密码 ${esc(a.password)}</small>
+      </div>
+      <span class="acc-arrow">→</span>
+    </button>`;
+  }).join('');
+}
+function showLogin(){document.getElementById('loginScreen').classList.remove('hidden');}
+function hideLogin(){document.getElementById('loginScreen').classList.add('hidden');}
+function loginAs(key){
+  if(!ROLES[key])return;
+  currentUser=key;saveUser(key);
+  hideLogin();
+  renderNav();renderUser();renderPermissionHint();
+  currentPage=role().pages[0];
+  navigate(currentPage);
+  showToast(`已登录：${role().name}（${role().label}）`);
+}
+function logout(){
+  document.getElementById('roleMenu').classList.remove('open');
+  clearUser();showLogin();showToast('已退出登录（演示）');
+}
+
+/* ========== 导航 ========== */
+let currentPage='overview';
+function navigate(page){
+  if(!canVisit(page)){deny(`访问「${titles[page]}」`);page=role().pages[0];}
+  currentPage=page;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
+  document.getElementById('crumb').textContent=titles[page];
+  const h1=document.querySelector('#page-'+page+' .page-head h1');if(h1)h1.textContent=titles[page];
+  renderAll();
+}
+document.querySelectorAll('.nav').forEach(n=>n.addEventListener('click',()=>navigate(n.dataset.page)));
+
+/* ========== 身份 UI ========== */
+function renderNav(){document.querySelectorAll('.nav').forEach(n=>{n.style.display=canVisit(n.dataset.page)?'':'none';});}
+function renderUser(){
+  const r=role();
+  document.getElementById('userAvatar').textContent=r.name.slice(0,2).toUpperCase();
+  document.getElementById('userName').textContent=r.name;
+  document.getElementById('userRole').textContent=r.label+' · Demo';
+}
+function renderPermissionHint(){
+  const r=role();
+  document.getElementById('permissionHint').innerHTML=`<b>当前身份：${esc(r.name)}（${esc(r.label)}）</b> · ${esc(r.desc)}。点击左下角头像可切换身份。`;
+}
+function toggleAccountMenu(e){
+  if(e)e.stopPropagation();
+  const menu=document.getElementById('roleMenu');
+  renderRoleList();
+  menu.classList.toggle('open');
+}
+function renderRoleList(){
+  document.getElementById('roleList').innerHTML=Object.values(ROLES).map(r=>`
+    <button class="role-item ${r.key===currentUser?'active':''}" onclick="switchRole('${r.key}')">
+      <span class="role-ico">${esc(r.name.slice(0,1).toUpperCase())}</span>
+      <div class="role-meta"><strong>${esc(r.name)} · ${esc(r.label)}</strong><small>${esc(r.desc.slice(0,20))}…</small></div>
+    </button>
+  `).join('');
+}
+function switchRole(key){
+  if(!ROLES[key])return;
+  currentUser=key;saveUser(key);
+  document.getElementById('roleMenu').classList.remove('open');
+  renderNav();renderUser();renderPermissionHint();
+  if(!canVisit(currentPage))currentPage=role().pages[0];
+  navigate(currentPage);
+  showToast(`已切换为 ${role().label}：${role().name}`);
+}
+document.addEventListener('click',e=>{
+  const menu=document.getElementById('roleMenu');
+  if(!menu.classList.contains('open'))return;
+  if(menu.contains(e.target))return;
+  if(e.target.closest('.side-bottom'))return;
+  menu.classList.remove('open');
+});
+
+/* ========== 权限按钮槽位 ========== */
+function renderActionSlots(){
+  const set=(id,html)=>{const el=document.getElementById(id);if(el)el.innerHTML=html;};
+  set('creatorAddSlot', can('creator.create')?`<button class="btn primary" onclick="openCreatorModal()">＋ 新增达人</button>`:`<span class="pill">只读</span>`);
+  set('quoteAddSlot',   can('quote.create')?`<button class="btn primary" onclick="openQuoteModal()">＋ 提交报价</button>`:`<span class="pill">只读</span>`);
+  set('deliveryAddSlot',can('delivery.create')?`<button class="btn primary" onclick="openDeliveryModal()">＋ 交付</button>`:`<span class="pill">只读</span>`);
+}
+
+/* ========== 渲染：达人 ========== */
+function creatorByName(name){return state.creators.find(c=>c.name===name)||{name:name||'未关联',id:'—',region:'—',owner:'—'};}
+function currencyForCreator(name){const c=creatorByName(name);return currencyByRegion[c.region]||'USD';}
+
+function renderCreators(){
+  const q=(document.getElementById('creatorSearch')?.value||'').toLowerCase();
+  const r=document.getElementById('creatorRegion')?.value||'';
+  const pl=document.getElementById('creatorPlatform')?.value||'';
+  const s=document.getElementById('creatorStatus')?.value||'';
+  const rows=state.creators.filter(c=>{
+    const pStr=(c.platforms||[]).map(p=>p.platform).join(' ');
+    return (!q||[c.name,c.email,pStr,c.id].join(' ').toLowerCase().includes(q))
+      &&(!r||c.region===r)&&(!pl||pStr.includes(pl))&&(!s||c.status===s);
+  });
+  document.getElementById('creatorRows').innerHTML=rows.map(c=>{
+    const ops=[];
+    if(can('creator.status')) ops.push(`<button class="table-action" onclick="quickStatus('${c.id}')">更新状态</button>`);
+    if(can('creator.create')) ops.push(`<button class="table-action" onclick="openCreatorModal('${c.id}')">修改</button>`);
+    const op=ops.length?ops.join(''):readonlyTag('仅查看');
+    const platforms=(c.platforms||[]).map(p=>p.platform).join('<br>')||'—';
+    const links=(c.platforms||[]).map(p=>p.link?`<a href="${esc(p.link)}" target="_blank" rel="noreferrer" style="color:var(--accent);text-decoration:none">打开 ↗</a>`:'—').join('<br>')||'—';
+    return `<tr><td><div class="person"><div class="avatar">${esc(c.name.slice(0,1).toUpperCase())}</div><div><strong>${esc(c.name)}</strong><small>${esc(c.id)} · ${esc(c.email)}</small></div></div></td><td>${esc(c.region)} <span class="muted">/ ${esc(c.language)}</span></td><td>${platforms}</td><td>${links}</td><td>${esc(c.owner)}</td><td>${pill(c.status)}</td><td>${op}</td></tr>`;
+  }).join('')||emptyRow(7,'没有匹配的达人');
+}
+function quickStatus(id){if(!can('creator.status'))return deny('更新达人状态');const c=state.creators.find(x=>x.id===id);if(!c)return;const opts=['待联系','已建联','合作中','已合作'];c.status=opts[(opts.indexOf(c.status)+1)%opts.length];saveState();renderCreators();showToast(`${c.name} 状态更新为 ${c.status}`);}
+
+/* ========== 渲染：报价 ========== */
+function renderQuotes(){
+  const f=document.getElementById('quoteFilter')?.value||'';
+  const rows=state.quotes.filter(q=>!f||q.status===f);
+  document.getElementById('quoteRows').innerHTML=rows.map(q=>{
+    let op;
+    if(q.status==='待审核'){
+      const btns=[];
+      if(canEditQuote(q)) btns.push(`<button class="table-action" onclick="openQuoteModal('${q.id}')">修改</button>`);
+      if(can('quote.review')){
+        btns.push(`<button class="table-action" onclick="reviewQuote('${q.id}','已通过')">通过</button>`);
+        btns.push(`<button class="table-action danger" onclick="reviewQuote('${q.id}','已驳回')">驳回</button>`);
+      }
+      op=btns.length?btns.join(''):readonlyTag('待主管审核');
+    }else if(q.status==='已驳回'){
+      const btns=[];
+      if(canEditQuote(q)) btns.push(`<button class="table-action" onclick="openQuoteModal('${q.id}')">修改</button>`);
+      btns.push(`<button class="table-action" onclick="openQuoteHistoryModal('${q.id}')">查看历史</button>`);
+      op=btns.join('');
+    }else{
+      if((q.history&&q.history.length)) op=`<button class="table-action" onclick="openQuoteHistoryModal('${q.id}')">查看历史</button>`;
+      else op=`<button class="table-action" onclick="showToast('报价历史：${q.id} · ${q.status}')">查看</button>`;
+    }
+    const platLines=(q.platforms||[]).map(p=>`${esc(p.platform)}×${esc(p.count)}`).join('<br>')||'—';
+    const authLine=q.adDays?`<span class="muted" style="display:block;margin-bottom:2px">授权 ${q.adDays} 天</span>`:'';
+    return `<tr><td><div class="person"><div class="avatar">${esc(q.creator.slice(0,1).toUpperCase())}</div><div><strong>${esc(q.creator)}</strong><small>${esc(q.id)}</small></div></div></td><td>${esc(q.campaign)}</td><td>${moneyCell(q.amount,q.currency)}</td><td>${authLine}${platLines}</td><td>${esc(q.owner)}</td><td>${pill(q.status)}</td><td>${op}</td></tr>`;
+  }).join('')||emptyRow(7,'暂无报价记录');
+}
+function reviewQuote(id,status){
+  if(!can('quote.review'))return deny('审核报价');
+  const q=state.quotes.find(x=>x.id===id);if(!q)return;
+  if(status==='已驳回'){
+    if(!q.history) q.history=[];
+    q.history.push({
+      at:nowStr(), amount:q.amount, currency:q.currency, amountUSD:q.amountUSD,
+      adDays:q.adDays, platforms:(q.platforms||[]).map(p=>({platform:p.platform,count:p.count})),
+      note:q.note||'', status:'已驳回'
+    });
+  }
+  q.status=status;
+  if(status==='已通过'&&!q.projectId){
+    const projectId='COL-2026-'+String(19+state.projects.length-4).padStart(3,'0');
+    state.projects.unshift({id:projectId,campaign:q.campaign,creator:q.creator,owner:q.owner||'Hebe',amount:q.amount,currency:q.currency,amountUSD:q.amountUSD,status:'待签合同',quoteId:q.id});
+    q.projectId=projectId;
+    const ctrId='CTR-2026-'+String(44+state.contracts.length-8).padStart(3,'0');
+    state.contracts.unshift({id:ctrId,creator:q.creator,project:projectId,amount:q.amount,currency:q.currency,amountUSD:q.amountUSD,status:'待上传',file:''});
+    showToast(`${id} 审核通过，已生成合作项目 ${projectId} 与合同 ${ctrId}`);
+  }else if(status==='已驳回'){
+    showToast(`${id} 已驳回，已记录本次报价到历史`);
+  }else{
+    showToast(`${id} 已${status}（演示）`);
+  }
+  saveState();renderAll();
+}
+function openQuoteHistoryModal(id){
+  const q=state.quotes.find(x=>x.id===id);if(!q)return;
+  const hist=q.history||[];
+  document.getElementById('modalTitle').textContent=`报价历史 · ${q.id}`;
+  let html=`<div class="notice">当前版本：<b>${fmtMoney(q.amount,q.currency)}</b> · 授权 ${q.adDays||'—'} 天 · 状态 ${esc(q.status)}</div>`;
+  html+=`<div class="notice">平台：${(q.platforms||[]).map(p=>`${esc(p.platform)}×${esc(p.count)}`).join('、')||'—'}</div>`;
+  if(!hist.length){
+    html+=`<div class="empty">暂无历史版本</div>`;
+  }else{
+    html+=`<div style="display:flex;flex-direction:column;gap:10px">`;
+    hist.forEach((h,i)=>{
+      html+=`<div class="history-item">
+        <h4>第 ${i+1} 次提交（${esc(h.at||'')}）</h4>
+        <div class="row"><span>报价：</span><b>${fmtMoney(h.amount,h.currency)}</b> <span>(${fmtUSD(h.amount,h.currency)} USD)</span></div>
+        <div class="row"><span>授权：</span><b>${h.adDays||'—'} 天</b></div>
+        <div class="row"><span>平台：</span><b>${(h.platforms||[]).map(p=>`${esc(p.platform)}×${esc(p.count)}`).join('、')||'—'}</b></div>
+        ${h.note?`<div class="row"><span>说明：</span>${esc(h.note)}</div>`:''}
+        <div class="row"><span>结果：</span>${pill(h.status||'已驳回')}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  document.getElementById('modalBody').innerHTML=html;
+  document.getElementById('modalForm').dataset.type='quote-history';
+  document.getElementById('modalFoot').innerHTML=`<button type="button" class="btn primary" onclick="closeModal()">关闭</button>`;
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+/* ========== 渲染：合作项目 ========== */
+function renderProjects(){
+  const q=(document.getElementById('projectSearch')?.value||'').toLowerCase();
+  const f=document.getElementById('projectStatus')?.value||'';
+  const rows=state.projects.filter(p=>(!q||[p.id,p.campaign,p.creator,p.owner].join(' ').toLowerCase().includes(q))&&(!f||p.status===f));
+  document.getElementById('projectRows').innerHTML=rows.map(p=>`<tr><td><strong>${esc(p.id)}</strong></td><td>${esc(p.campaign)}</td><td>${esc(p.creator)}</td><td>${esc(p.owner)}</td><td>${moneyCell(p.amount,p.currency)}</td><td>${esc(progressOfProject(p.id))}</td><td>${pill(p.status)}</td><td><button class="table-action" onclick="showToast('已打开合作单 ${p.id}（演示）')">详情 →</button></td></tr>`).join('')||emptyRow(8,'暂无合作项目');
+}
+
+/* ========== 渲染：合同 ========== */
+function renderContracts(){
+  const q=(document.getElementById('contractSearch')?.value||'').toLowerCase();
+  const f=document.getElementById('contractStatus')?.value||'';
+  const rows=state.contracts.filter(c=>(!q||[c.id,c.creator,c.project].join(' ').toLowerCase().includes(q))&&(!f||c.status===f));
+  document.getElementById('contractRows').innerHTML=rows.map(c=>{
+    const owner=ownerOfProject(c.project)||'—';
+    let op='';
+    if(c.status==='待上传'||c.status==='需修改'){
+      op=canUploadContract(c)
+        ? `<button class="table-action" onclick="openContractUploadModal('${c.id}')">上传合同</button>`
+        : readonlyTag('待项目负责人上传');
+    }else if(c.status==='待确认'){
+      op=can('contract.sign')
+        ? `<button class="table-action" onclick="contractConfirm('${c.id}')">确认</button>
+           <button class="table-action danger" onclick="contractReject('${c.id}')">退回</button>`
+        : readonlyTag('待主管确认');
+    }else if(c.status==='已确认'){
+      op=`<button class="table-action" onclick="openContractViewModal('${c.id}')">查看合同</button>`;
+    }
+    return `<tr><td><strong>${esc(c.id)}</strong></td><td>${esc(c.creator)}<small class="muted" style="display:block;margin-top:4px">${esc(c.project||'—')}</small></td><td>${esc(owner)}</td><td>${moneyCell(c.amount,c.currency)}</td><td>${pill(c.status)}</td><td>${op}</td></tr>`;
+  }).join('')||emptyRow(6,'暂无合同记录');
+}
+function contractConfirm(id){
+  if(!can('contract.sign'))return deny('确认合同');
+  const c=state.contracts.find(x=>x.id===id);if(!c)return;
+  c.status='已确认';
+  saveState();renderContracts();renderOverview();
+  showToast(`${id} 已确认`);
+}
+function contractReject(id){
+  if(!can('contract.sign'))return deny('退回合同');
+  const c=state.contracts.find(x=>x.id===id);if(!c)return;
+  c.status='需修改';
+  saveState();renderContracts();renderOverview();
+  showToast(`${id} 已退回，状态更新为「需修改」`);
+}
+function openContractUploadModal(id){
+  const c=state.contracts.find(x=>x.id===id);
+  if(!c)return;
+  if(!canUploadContract(c))return deny('上传合同');
+  document.getElementById('modalTitle').textContent = c.file ? '修改合同文件' : '上传合同文件';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="notice">合同：<b>${esc(c.id)}</b> · ${esc(c.creator)} · ${fmtMoney(c.amount,c.currency)}。${c.file?`当前文件：${esc(c.file)}`:'暂无文件'}。上传后状态变为「待确认」，等待主管确认。</div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>合同文件（PDF / Word） *</label>
+        <input id="contractUploadFile" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required />
+        <small class="muted">演示模式：仅记录文件名，文件不会上传。</small>
+      </div>
+    </div>`;
+  document.getElementById('modalForm').dataset.type='contract-upload';
+  document.getElementById('modalForm').dataset.contractId=id;
+  document.getElementById('modalFoot').innerHTML=`<button type="button" class="btn" onclick="closeModal()">取消</button><button type="submit" class="btn primary">保存</button>`;
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+function openContractViewModal(id){
+  const c=state.contracts.find(x=>x.id===id);
+  if(!c)return;
+  const proj=projectById(c.project);
+  document.getElementById('modalTitle').textContent='合同详情';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="detail-list">
+      <div class="detail-row"><div class="k">合同编号</div><div class="v">${esc(c.id)}</div></div>
+      <div class="detail-row"><div class="k">达人</div><div class="v">${esc(c.creator)}</div></div>
+      <div class="detail-row"><div class="k">合作单</div><div class="v">${esc(c.project||'—')}${proj?` · ${esc(proj.campaign)}`:''}</div></div>
+      <div class="detail-row"><div class="k">跟进人</div><div class="v">${esc(ownerOfProject(c.project)||'—')}</div></div>
+      <div class="detail-row"><div class="k">合同金额</div><div class="v">${moneyCell(c.amount,c.currency)}</div></div>
+      <div class="detail-row"><div class="k">签署状态</div><div class="v">${pill(c.status)}</div></div>
+      <div class="detail-row"><div class="k">合同文件</div><div class="v">${c.file?`<a href="#" onclick="event.preventDefault();showToast('演示：打开 ${esc(c.file)}')" style="color:var(--accent);text-decoration:none">${esc(c.file)}</a>`:'—'}</div></div>
+    </div>`;
+  document.getElementById('modalForm').dataset.type='contract-view';
+  const showEdit = canUploadContract(c);
+  document.getElementById('modalFoot').innerHTML=`
+    ${showEdit?`<button type="button" class="btn" onclick="openContractUploadModal('${c.id}')">修改</button>`:''}
+    <button type="button" class="btn primary" onclick="closeModal()">关闭</button>`;
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+/* ========== 渲染：交付 ========== */
+function renderDeliveries(){
+  const q=(document.getElementById('deliverySearch')?.value||'').toLowerCase();
+  const f=document.getElementById('deliveryStatus')?.value||'';
+  const rows=state.deliveries.filter(d=>{
+    const vStr=(d.videos||[]).map(v=>[v.platform,v.link,v.code,v.publishDate].join(' ')).join(' ');
+    return (!q||[d.creator,d.project,vStr].join(' ').toLowerCase().includes(q))&&(!f||d.status===f);
+  });
+  document.getElementById('deliveryRows').innerHTML=rows.map(d=>{
+    const owner=ownerOfProject(d.project)||'—';
+    let op;
+    if(d.status==='待审核'){
+      op=can('delivery.review')
+        ? `<button class="table-action" onclick="deliveryAction('${d.id}','已确认')">确认</button><button class="table-action danger" onclick="deliveryAction('${d.id}','需修改')">退回</button>`
+        : readonlyTag('待主管确认');
+    }else if(d.status==='需修改'){
+      op=canEditDelivery(d)
+        ? `<button class="table-action" onclick="openDeliveryModal('${d.id}')">修改</button>`
+        : readonlyTag('待项目负责人修改');
+    }else{
+      op=`<button class="table-action" onclick="showToast('交付记录 ${d.id}')">查看</button>`;
+    }
+    const adDays=adDaysForProject(d.project);
+    const platLines=multiLine(d.videos,'platform');
+    const linkLines=(d.videos||[]).map(v=>v.link?`<a href="${esc(v.link)}" target="_blank" rel="noreferrer" style="color:var(--accent);text-decoration:none">${esc(v.link.length>28?v.link.slice(0,25)+'…':v.link)}</a>`:'—').join('<br>')||'—';
+    const codeLines=multiLine(d.videos,'code');
+    const expiryLines=(d.videos||[]).map(v=>{
+      if(!v.publishDate||!adDays) return '—';
+      return esc(addDays(v.publishDate,adDays));
+    }).join('<br>')||'—';
+    return `<tr><td><strong>${esc(d.creator)}</strong><small class="muted" style="display:block;margin-top:4px">${esc(d.project)}</small></td><td>${esc(owner)}</td><td>${platLines}</td><td>${linkLines}</td><td>${codeLines}</td><td>${expiryLines}</td><td>${pill(d.status)}</td><td>${op}</td></tr>`;
+  }).join('')||emptyRow(8,'暂无交付资料');
+}
+function deliveryAction(id,status){
+  if(!can('delivery.review'))return deny('审核视频交付');
+  const d=state.deliveries.find(x=>x.id===id);if(!d)return;
+  d.status=status;
+  if(status==='已确认') tryAutoCreatePayment(d.project);
+  saveState();renderAll();
+  showToast(`${id} 状态已更新为 ${status}`);
+}
+
+/* ========== 渲染：付款 ========== */
+function renderPayments(){
+  const readyContracts=state.contracts.filter(c=>{
+    if(c.status!=='已确认') return false;
+    if(state.payments.some(p=>p.contract===c.id)) return false;
+    return state.deliveries.some(d=>d.project===c.project && d.status==='已确认');
+  });
+  document.getElementById('payReady').textContent=readyContracts.length;
+
+  const pending=state.payments.filter(p=>p.status==='待财务审核'||p.status==='付款处理中')
+    .reduce((a,p)=>a+Number(p.amountUSD??toUSD(p.amount,p.currency||'USD')),0);
+  document.getElementById('payPending').textContent='$'+pending.toLocaleString('en-US',{maximumFractionDigits:0});
+
+  const done=state.payments.filter(p=>p.status==='已付款')
+    .reduce((a,p)=>a+Number(p.amountUSD??toUSD(p.amount,p.currency||'USD')),0);
+  document.getElementById('payDone').textContent='$'+done.toLocaleString('en-US',{maximumFractionDigits:0});
+
+  const issue=state.payments.filter(p=>p.status==='资料缺失').length;
+  document.getElementById('payIssue').textContent=issue;
+
+  const q=(document.getElementById('paymentSearch')?.value||'').toLowerCase();
+  const f=document.getElementById('paymentStatus')?.value||'';
+  const rows=state.payments.filter(p=>(!q||[p.id,p.creator,p.contract,p.method].join(' ').toLowerCase().includes(q))&&(!f||p.status===f));
+  document.getElementById('paymentRows').innerHTML=rows.map(p=>{
+    const owner=ownerOfContract(p.contract)||'—';
+    let op;
+    if(p.status==='待财务审核'){
+      op=can('payment.approve')
+        ? `<button class="table-action" onclick="paymentAction('${p.id}','付款处理中')">开始付款</button>
+           <button class="table-action danger" onclick="paymentReject('${p.id}')">退回</button>`
+        : readonlyTag('待财务处理');
+    }else if(p.status==='付款处理中'){
+      op=can('payment.approve')?`<button class="table-action" onclick="openVoucherModal('${p.id}')">上传凭证</button>`:readonlyTag('待财务处理');
+    }else if(p.status==='资料缺失'){
+      const btns=[];
+      if(canFillPayment(p)) btns.push(`<button class="table-action" onclick="openFillPaymentModal('${p.id}')">补资料</button>`);
+      if(can('payment.remind')) btns.push(`<button class="table-action" onclick="showToast('已通知运营补充收款 / Invoice 资料')">催补资料</button>`);
+      op=btns.length?btns.join(''):readonlyTag('资料待补');
+    }else{
+      op=`<button class="table-action" onclick="showToast('付款记录 ${p.id} 凭证：${p.voucher||'未上传'}')">查看凭证</button>`;
+    }
+    const inv=p.invoice?`<a href="#" onclick="event.preventDefault();showToast('演示：打开 ${esc(p.invoice)}')" style="color:var(--accent);text-decoration:none">${esc(p.invoice)}</a>`:`<span class="muted">未上传</span>`;
+    const method=p.method||'<span class="muted">—</span>';
+    return `<tr><td><strong>${esc(p.id)}</strong></td><td>${esc(p.creator)}<small class="muted" style="display:block;margin-top:4px">${esc(p.contract)}</small></td><td>${esc(owner)}</td><td>${moneyCell(p.amount,p.currency)}</td><td>${method}</td><td>${inv}</td><td>${pill(p.status)}</td><td>${op}</td></tr>`;
+  }).join('')||emptyRow(8,'暂无付款记录');
+}
+function paymentAction(id,status){
+  if(!can('payment.approve'))return deny('处理付款');
+  const p=state.payments.find(x=>x.id===id);if(!p)return;
+  p.status=status;saveState();renderAll();
+  showToast(`${p.id} 已更新为 ${status}（演示）`);
+}
+function paymentReject(id){
+  if(!can('payment.approve'))return deny('退回付款申请');
+  const p=state.payments.find(x=>x.id===id);if(!p)return;
+  p.status='资料缺失';saveState();renderAll();
+  showToast(`${id} 已退回，状态更新为「资料缺失」`);
+}
+function openFillPaymentModal(id){
+  const p=state.payments.find(x=>x.id===id);
+  if(!p)return;
+  if(!canFillPayment(p))return deny('补资料');
+  const ctr=state.contracts.find(c=>c.id===p.contract);
+  document.getElementById('modalTitle').textContent='补资料';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="notice">付款单：<b>${esc(p.id)}</b> · ${esc(p.creator)}。补充付款方式与 Invoice 后提交财务审核。</div>
+    <div class="form-grid">
+      <div class="field"><label>关联合同</label><input value="${esc(p.contract)}" readonly /></div>
+      <div class="field"><label>应付金额</label><input value="${ctr?fmtMoney(ctr.amount,ctr.currency):fmtMoney(p.amount,p.currency)}" readonly /></div>
+      <div class="field full"><label>付款方式 *</label>
+        <select name="method" required>${['PayPal','银行转账','PayPay','其他'].map(o=>`<option ${p.method===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <div class="field full">
+        <label>Invoice 上传（PDF / 图片）</label>
+        <input id="fillInvoiceUpload" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" />
+        <small class="muted">${p.invoice?`当前：${esc(p.invoice)}`:'演示模式：仅记录文件名。'}</small>
+      </div>
+    </div>`;
+  document.getElementById('modalForm').dataset.type='payment-fill';
+  document.getElementById('modalForm').dataset.paymentId=id;
+  document.getElementById('modalFoot').innerHTML=`<button type="button" class="btn" onclick="closeModal()">取消</button><button type="submit" class="btn primary">提交</button>`;
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+function openVoucherModal(paymentId){
+  if(!can('payment.approve'))return deny('上传付款凭证');
+  const p=state.payments.find(x=>x.id===paymentId);
+  if(!p)return;
+  document.getElementById('modalTitle').textContent='上传付款凭证';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="notice">付款单：<b>${esc(p.id)}</b> · ${esc(p.creator)} · ${fmtMoney(p.amount,p.currency)}。上传凭证后，该付款单状态将变为「已付款」。</div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>付款凭证文件（PDF / 图片） *</label>
+        <input id="voucherUpload" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" required />
+        <small class="muted">演示模式：仅记录文件名，文件不会上传。</small>
+      </div>
+    </div>`;
+  document.getElementById('modalForm').dataset.type='voucher';
+  document.getElementById('modalForm').dataset.paymentId=paymentId;
+  document.getElementById('modalFoot').innerHTML=`<button type="button" class="btn" onclick="closeModal()">取消</button><button type="submit" class="btn primary">保存</button>`;
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+/* ========== 总览 ========== */
+function pushTask(tasks,icon,title,sub,page,label,perm){
+  tasks.push({icon,title,sub,page,label,perm});
+}
+function renderOverview(){
+  const showStats=showOverviewStats();
+  document.getElementById('overviewStatsBlock').style.display=showStats?'':'none';
+  document.getElementById('funnelPanel').style.display=showStats?'':'none';
+  document.getElementById('overviewGrid').style.gridTemplateColumns=showStats?'':'1fr';
+
+  if(showStats){
+    document.getElementById('statCreators').textContent=128+Math.max(0,state.creators.length-5);
+    document.getElementById('statQuotes').textContent=state.quotes.filter(q=>q.status==='待审核').length;
+    document.getElementById('statProjects').textContent=state.projects.filter(p=>p.status!=='已完成').length+12;
+    const vc=timeUtils.countPublishedVideos();
+    document.getElementById('statVideos').textContent=vc.month;
+    document.getElementById('statVideosToday').textContent='+'+vc.today;
+  }
+
+  const tasks=[];
+  if(currentUser==='ops'){
+    const myName='Hebe';
+    state.quotes.filter(q=>q.owner===myName && q.status==='已驳回').forEach(q=>{
+      pushTask(tasks,'＄',`已驳回报价需修改：${q.creator}`,`${q.campaign} · ${fmtMoney(q.amount,q.currency)}`,'quotes','去修改','quote.create');
+    });
+    state.contracts.filter(c=>c.status==='需修改' && ownerOfProject(c.project)===myName).forEach(c=>{
+      pushTask(tasks,'▤',`合同需修改：${c.creator}`,`${c.id} · ${c.status}`,'contracts','去处理','contract.upload');
+    });
+    state.deliveries.filter(d=>d.status==='需修改' && ownerOfProject(d.project)===myName).forEach(d=>{
+      pushTask(tasks,'▶',`交付需修改：${d.creator}`,`${d.videos?.length||0} 条视频 · ${d.status}`,'deliveries','去处理','delivery.create');
+    });
+    state.payments.filter(p=>p.status==='资料缺失' && ownerOfContract(p.contract)===myName).forEach(p=>{
+      pushTask(tasks,'￥',`付款资料缺失：${p.creator}`,`${p.id} · ${fmtMoney(p.amount,p.currency||'USD')}`,'payments','去补资料','payment.fill');
+    });
+  }else if(currentUser==='finance'){
+    state.payments.filter(p=>p.status==='待财务审核'||p.status==='付款处理中').forEach(p=>{
+      pushTask(tasks,'￥',`处理 ${p.creator} 的付款`,`${p.id} · ${fmtMoney(p.amount,p.currency||'USD')} · ${p.status}`,'payments','查看','payment.approve');
+    });
+  }else{
+    state.quotes.filter(q=>q.status==='待审核').forEach(q=>{
+      pushTask(tasks,'＄',`审核 ${q.creator} 的报价申请`,`${q.campaign} · ${fmtMoney(q.amount,q.currency)}`,'quotes','去审核','quote.review');
+    });
+    state.contracts.filter(c=>c.status==='待上传'||c.status==='待确认'||c.status==='需修改').forEach(c=>{
+      let label='查看',perm='contract.upload';
+      if(c.status==='待确认'){label='确认';perm='contract.sign';}
+      pushTask(tasks,'▤',`跟进 ${c.creator} 的合同`,`${c.id} · ${c.status}`,'contracts',label,perm);
+    });
+    state.deliveries.filter(d=>d.status==='待审核'||d.status==='需修改').forEach(d=>{
+      pushTask(tasks,'▶',`核验 ${d.creator} 的视频交付`,`${d.videos?.length||0} 条视频 · ${d.status}`,'deliveries','处理','delivery.review');
+    });
+    state.payments.filter(p=>p.status==='待财务审核'||p.status==='付款处理中'||p.status==='资料缺失').forEach(p=>{
+      const perm = p.status==='资料缺失' ? 'payment.fill' : 'payment.approve';
+      const label = p.status==='资料缺失' ? '补资料' : '查看';
+      pushTask(tasks,'￥',`处理 ${p.creator} 的付款`,`${p.id} · ${fmtMoney(p.amount,p.currency||'USD')} · ${p.status}`,'payments',label,perm);
+    });
+  }
+
+  const subtitleMap={
+    ops:'运营待办：已驳回报价、需修改合同 / 交付、资料缺失付款',
+    finance:'财务待处理：待财务审核 / 付款处理中',
+    lead:'按当前流程状态自动汇总（全部）',
+    admin:'按当前流程状态自动汇总（全部）'
+  };
+  document.getElementById('taskSubtitle').textContent=subtitleMap[currentUser]||'按当前流程状态自动汇总';
+  document.getElementById('taskCount').textContent=tasks.length+' 项待处理';
+  document.getElementById('taskList').innerHTML=tasks.slice(0,6).map(t=>{
+    const allowed=can(t.perm);
+    return `<div class="task"><div class="task-icon">${t.icon}</div><div class="task-main"><strong>${esc(t.title)}</strong><small>${esc(t.sub)}</small></div>${allowed?`<button class="btn" onclick="navigate('${t.page}')">${t.label} →</button>`:readonlyTag('当前身份仅查看')}</div>`;
+  }).join('')||'<div class="empty">🎉 暂无待办事项</div>';
+
+  if(showStats){
+    const counts=[['达人建联',128],['报价审核',state.quotes.length+8],['建立合作',state.projects.length+5],['内容发布',state.deliveries.length+8],['完成付款',state.payments.filter(p=>p.status==='已付款').length+11]];
+    document.getElementById('funnel').innerHTML=counts.map((c,i)=>`<div class="funnel-row"><label>${c[0]}</label><div class="bar"><span style="width:${Math.max(12,c[1]/140*100)}%;opacity:${1-i*.12}"></span></div><b>${c[1]}</b></div>`).join('');
+  }
+  renderProjects();
+}
+
+/* ========== 权限矩阵 ========== */
+function renderPermissionMatrix(){
+  const el=document.getElementById('permMatrix');
+  if(!el) return;
+  const roles=Object.values(ROLES);
+  const head=`<tr><th style="text-align:left">功能点</th>${roles.map(r=>`<th style="text-align:center;${r.key===currentUser?'color:var(--accent)':''}">${esc(r.label)}${r.key===currentUser?' <span class="pill purple" style="margin-left:4px">当前</span>':''}</th>`).join('')}</tr>`;
+  const body=PERM_MATRIX.map(g=>{
+    const groupRow=`<tr><td colspan="${roles.length+1}" style="background:var(--surface2);font-size:10px;font-weight:800;letter-spacing:1px;color:var(--muted)">${esc(g.group)}</td></tr>`;
+    const rows=g.items.map(it=>`<tr><td style="text-align:left">${esc(it.label)}</td>${roles.map(r=>{
+      const ok=!!r.actions[it.perm];
+      const highlight=r.key===currentUser?'background:color-mix(in srgb,var(--accent-soft) 40%,transparent);':'';
+      return `<td style="text-align:center;${highlight}">${ok?'<span style="color:var(--green);font-weight:800">✓</span>':'<span class="muted">—</span>'}</td>`;
+    }).join('')}</tr>`).join('');
+    return groupRow+rows;
+  }).join('');
+  el.innerHTML=`<table class="data-table" style="min-width:640px"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+}
+
+/* ========== 弹窗公共 ========== */
+function resetModalFoot(){document.getElementById('modalFoot').innerHTML=`<button type="button" class="btn" onclick="closeModal()">取消</button><button type="submit" class="btn primary">保存记录</button>`;}
+
+/* ========== 达人弹窗 ========== */
+function openCreatorModal(id){
+  if(id && !can('creator.create'))return deny('修改达人');
+  if(!id && !can('creator.create'))return deny('新增达人');
+  const body=document.getElementById('modalBody');
+  document.getElementById('modalBackdrop').classList.add('open');
+  document.getElementById('modalForm').dataset.type=id?'creator-edit':'creator';
+  if(id) document.getElementById('modalForm').dataset.creatorId=id;
+  else delete document.getElementById('modalForm').dataset.creatorId;
+  document.getElementById('modalTitle').textContent = id ? '修改达人' : '新增达人';
+  resetModalFoot();
+  const c = id ? state.creators.find(x=>x.id===id) : null;
+  const auto = c ? c.owner : (autoOwnerName() || 'Hebe');
+  body.innerHTML=`
+  <div class="form-grid">
+    <div class="field"><label>达人昵称 *</label><input name="name" required value="${c?esc(c.name):''}" /></div>
+    <div class="field"><label>联系邮箱</label><input name="email" type="email" value="${c?esc(c.email||''):''}" /></div>
+    <div class="field"><label>地区 *</label>
+      <select name="region" required>${['日本','美国','印尼','菲律宾','英国','其他'].map(o=>`<option ${c&&c.region===o?'selected':''}>${o}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>沟通语言</label><input name="language" value="${c?esc(c.language||''):''}" /></div>
+    ${buildOwnerFieldHtml(auto)}
+    <div class="field"><label>当前状态 *</label>
+      <select name="status" required>${['待联系','已建联','合作中','已合作'].map(o=>`<option ${c&&c.status===o?'selected':''}>${o}</option>`).join('')}</select>
+    </div>
+    <div class="field full"><label>达人标签</label><input name="tags" value="${c?esc(c.tags||''):''}" placeholder="例如 K-pop / CP" /></div>
+    <div class="field full">
+      <label>平台与链接 *</label>
+      <div class="multi-row" id="creatorPlatformRows"></div>
+      <button type="button" class="btn small multi-add" onclick="addCreatorPlatformRow()">＋ 增加平台</button>
+    </div>
+  </div>`;
+  const rows = (c && c.platforms && c.platforms.length) ? c.platforms : [null];
+  rows.forEach(p=>addCreatorPlatformRow(p?p.platform:'',p?p.link:''));
+}
+function addCreatorPlatformRow(platform,link){
+  const wrap=document.getElementById('creatorPlatformRows');
+  if(!wrap) return;
+  const div=document.createElement('div');
+  div.className='multi-item cols-2';
+  div.innerHTML=`<select data-field="platform">${PLATFORM_OPTIONS.map(o=>`<option>${o}</option>`).join('')}</select>
+    <input data-field="link" placeholder="https://..." />
+    <button type="button" class="icon-btn" onclick="this.parentElement.remove()">×</button>`;
+  if(platform) div.querySelector('[data-field="platform"]').value=platform;
+  if(link) div.querySelector('[data-field="link"]').value=link;
+  wrap.appendChild(div);
+}
+
+/* ========== 报价弹窗 ========== */
+function openQuoteModal(id){
+  if(id){
+    const q=state.quotes.find(x=>x.id===id);
+    if(!q)return;
+    if(!canEditQuote(q))return deny('修改此报价');
+  }else{
+    if(!can('quote.create'))return deny('提交报价');
+  }
+  const q = id ? state.quotes.find(x=>x.id===id) : null;
+  const body=document.getElementById('modalBody');
+  document.getElementById('modalBackdrop').classList.add('open');
+  document.getElementById('modalForm').dataset.type = id ? 'quote-edit' : 'quote';
+  if(id) document.getElementById('modalForm').dataset.quoteId=id;
+  else delete document.getElementById('modalForm').dataset.quoteId;
+  document.getElementById('modalTitle').textContent = id ? '修改报价' : '提交报价申请';
+  resetModalFoot();
+  const auto = q ? q.owner : (autoOwnerName()||'Hebe');
+  body.innerHTML=`
+  <div class="form-grid">
+    <div class="field"><label>选择达人 *</label>
+      <select name="creator" required>${state.creators.map(c=>`<option ${q&&q.creator===c.name?'selected':''}>${esc(c.name)}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Campaign / 项目 *</label><input name="campaign" required value="${q?esc(q.campaign):''}" /></div>
+    <div class="field"><label id="quoteAmountLabel">报价金额 *</label><input name="amount" type="number" min="0" step="1" required value="${q?q.amount:''}" /></div>
+    <div class="field"><label>广告授权天数 *</label><input name="adDays" type="number" min="1" step="1" required placeholder="例如 30" value="${q?q.adDays:''}" /></div>
+    ${buildOwnerFieldHtml(auto)}
+    <div class="field full">
+      <label>平台与视频数 *</label>
+      <div class="multi-row" id="quotePlatformRows"></div>
+      <button type="button" class="btn small multi-add" onclick="addQuotePlatformRow()">＋ 增加平台</button>
+    </div>
+    <div class="field full"><label>申请说明</label><textarea name="note" placeholder="补充说明…">${q?esc(q.note||''):''}</textarea></div>
+  </div>`;
+  const rows = (q && q.platforms && q.platforms.length) ? q.platforms : [null];
+  rows.forEach(p=>addQuotePlatformRow(p?p.platform:'',p?p.count:''));
+  bindQuoteCurrency();
+}
+function addQuotePlatformRow(platform,count){
+  const wrap=document.getElementById('quotePlatformRows');
+  if(!wrap) return;
+  const div=document.createElement('div');
+  div.className='multi-item cols-2b';
+  div.innerHTML=`<select data-field="platform">${PLATFORM_OPTIONS.map(o=>`<option>${o}</option>`).join('')}</select>
+    <input data-field="count" type="number" min="1" step="1" placeholder="视频数" value="1" />`;
+  if(platform) div.querySelector('[data-field="platform"]').value=platform;
+  if(count) div.querySelector('[data-field="count"]').value=count;
+  wrap.appendChild(div);
+}
+function bindQuoteCurrency(){
+  const grid=document.querySelector('#modalBody .form-grid');
+  const creatorSel=grid.querySelector('select[name="creator"]');
+  const amountInput=grid.querySelector('input[name="amount"]');
+  const amountLabel=document.getElementById('quoteAmountLabel');
+  if(!creatorSel||!amountInput) return;
+  const sync=()=>{
+    const code=currencyForCreator(creatorSel.value);
+    if(amountLabel)amountLabel.textContent=`报价金额（${code}） *`;
+    let hint=document.getElementById('quoteUsdHint');
+    if(!hint){hint=document.createElement('small');hint.id='quoteUsdHint';hint.className='muted';amountInput.parentElement.appendChild(hint);}
+    hint.textContent=fmtUSD(amountInput.value,code)+' USD';
+  };
+  creatorSel.addEventListener('change',sync);
+  amountInput.addEventListener('input',sync);
+  sync();
+}
+
+/* ========== 交付弹窗（修改时锁定达人+合作单） ========== */
+function openDeliveryModal(id){
+  const editing = id ? state.deliveries.find(x=>x.id===id) : null;
+  if(id && !editing)return;
+  if(id && !canEditDelivery(editing))return deny('修改交付');
+  if(!id && !can('delivery.create'))return deny('提交交付资料');
+  const body=document.getElementById('modalBody');
+  document.getElementById('modalBackdrop').classList.add('open');
+  document.getElementById('modalForm').dataset.type = id ? 'delivery-edit' : 'delivery';
+  if(id) document.getElementById('modalForm').dataset.deliveryId=id;
+  else delete document.getElementById('modalForm').dataset.deliveryId;
+  document.getElementById('modalTitle').textContent = id ? '修改交付' : '交付';
+  resetModalFoot();
+
+  if(editing){
+    // 修改模式：达人 + 合作单锁定只读
+    body.innerHTML=`
+    <div class="form-grid">
+      <div class="field"><label>达人</label>
+        <input value="${esc(editing.creator)}" readonly />
+        <input type="hidden" name="creator" value="${esc(editing.creator)}" />
+      </div>
+      <div class="field"><label>合作单</label>
+        <input value="${esc(editing.project)}" readonly />
+        <input type="hidden" name="project" value="${esc(editing.project)}" />
+      </div>
+      <div class="field full">
+        <label>视频与广告码 *</label>
+        <div class="multi-row" id="deliveryVideoRows"></div>
+        <button type="button" class="btn small multi-add" onclick="addDeliveryVideoRow()">＋ 增加视频</button>
+      </div>
+    </div>`;
+    const vids=(editing.videos&&editing.videos.length)?editing.videos:[null];
+    vids.forEach(v=>addDeliveryVideoRow(v?v.platform:'',v?v.link:'',v?v.publishDate:'',v?v.code:''));
+  }else{
+    // 新建模式：正常匹配
+    body.innerHTML=`
+    <div class="form-grid">
+      <div class="field"><label>选择达人 *</label>
+        <select name="creator" required>${state.creators.map(c=>`<option>${esc(c.name)}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>关联合作单</label>
+        <select name="project" id="deliveryProjectSelect"></select>
+        <small class="muted" id="deliveryProjectHint"></small>
+      </div>
+      <div class="field full">
+        <label>视频与广告码 *</label>
+        <div class="multi-row" id="deliveryVideoRows"></div>
+        <button type="button" class="btn small multi-add" onclick="addDeliveryVideoRow()">＋ 增加视频</button>
+      </div>
+    </div>`;
+    const creatorSel=body.querySelector('select[name="creator"]');
+    const projSel=body.querySelector('#deliveryProjectSelect');
+    const hint=body.querySelector('#deliveryProjectHint');
+    const refresh=()=>{
+      const name=creatorSel.value;
+      const cands=state.projects.filter(p=>p.creator===name);
+      projSel.innerHTML='';
+      projSel.disabled=false;
+      if(cands.length===0){
+        projSel.innerHTML='<option value="">（无）</option>';
+        projSel.disabled=true;
+        if(hint)hint.textContent='该达人暂无合作单';
+      }else{
+        cands.forEach(p=>{
+          const o=document.createElement('option');o.value=p.id;o.textContent=`${p.id} · ${p.campaign}`;
+          projSel.appendChild(o);
+        });
+        projSel.disabled=cands.length<=1;
+        if(hint)hint.textContent=cands.length===1?'已自动匹配唯一的合作单':'该达人有多个合作单，请选择';
+      }
+    };
+    creatorSel.addEventListener('change',refresh);
+    refresh();
+    addDeliveryVideoRow();
+  }
+}
+function addDeliveryVideoRow(platform,link,publishDate,code){
+  const wrap=document.getElementById('deliveryVideoRows');
+  if(!wrap) return;
+  const div=document.createElement('div');
+  div.className='multi-item cols-4';
+  div.innerHTML=`<select data-field="platform">${PLATFORM_OPTIONS.map(o=>`<option>${o}</option>`).join('')}</select>
+    <input data-field="link" placeholder="视频链接 https://..." />
+    <input data-field="publishDate" type="date" title="发布日期" />
+    <input data-field="code" placeholder="广告授权码" />
+    <button type="button" class="icon-btn" onclick="this.parentElement.remove()">×</button>`;
+  if(platform) div.querySelector('[data-field="platform"]').value=platform;
+  if(link) div.querySelector('[data-field="link"]').value=link;
+  if(publishDate) div.querySelector('[data-field="publishDate"]').value=publishDate;
+  if(code) div.querySelector('[data-field="code"]').value=code;
+  wrap.appendChild(div);
+}
+
+function closeModal(){document.getElementById('modalBackdrop').classList.remove('open');document.getElementById('modalForm').reset();}
+
+/* ========== 多行读取 ========== */
+function readCreatorPlatforms(){
+  return [...document.querySelectorAll('#creatorPlatformRows .multi-item')].map(row=>({
+    platform:row.querySelector('[data-field="platform"]').value,
+    link:row.querySelector('[data-field="link"]').value.trim()
+  })).filter(x=>x.platform);
+}
+function readQuotePlatforms(){
+  return [...document.querySelectorAll('#quotePlatformRows .multi-item')].map(row=>({
+    platform:row.querySelector('[data-field="platform"]').value,
+    count:Number(row.querySelector('[data-field="count"]').value)||0
+  })).filter(x=>x.platform&&x.count>0);
+}
+function readDeliveryVideos(){
+  return [...document.querySelectorAll('#deliveryVideoRows .multi-item')].map(row=>({
+    platform:row.querySelector('[data-field="platform"]').value,
+    link:row.querySelector('[data-field="link"]').value.trim(),
+    publishDate:row.querySelector('[data-field="publishDate"]').value,
+    code:row.querySelector('[data-field="code"]').value.trim()
+  })).filter(x=>x.link);
+}
+
+/* ========== 表单提交 ========== */
+document.getElementById('modalForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const type=e.currentTarget.dataset.type;
+  const data=Object.fromEntries(new FormData(e.currentTarget).entries());
+  const nextNum=(prefix,base,len)=>prefix+'-'+String(base+len).padStart(4,'0');
+
+  if(type==='contract-upload'){
+    const id=e.currentTarget.dataset.contractId;
+    const c=state.contracts.find(x=>x.id===id);
+    if(!c){closeModal();return;}
+    if(!canUploadContract(c))return deny('上传合同');
+    const name=document.getElementById('contractUploadFile')?.files?.[0]?.name || '';
+    if(!name){showToast('请选择合同文件');return;}
+    c.file=name;c.status='待确认';
+    saveState();closeModal();renderAll();
+    showToast(`${c.id} 合同已上传，等待主管确认`);return;
+  }
+  if(type==='contract-view'||type==='quote-history'){ closeModal(); return; }
+  if(type==='voucher'){
+    if(!can('payment.approve'))return deny('上传付款凭证');
+    const pid=e.currentTarget.dataset.paymentId;
+    const p=state.payments.find(x=>x.id===pid);if(!p){closeModal();return;}
+    const name=document.getElementById('voucherUpload')?.files?.[0]?.name || '';
+    if(!name){showToast('请选择付款凭证文件');return;}
+    p.voucher=name;p.status='已付款';
+    saveState();closeModal();renderAll();
+    showToast(`${p.id} 凭证已上传，状态更新为已付款`);return;
+  }
+  if(type==='payment-fill'){
+    const pid=e.currentTarget.dataset.paymentId;
+    const p=state.payments.find(x=>x.id===pid);if(!p){closeModal();return;}
+    if(!canFillPayment(p))return deny('补资料');
+    const method=data.method||p.method||'PayPal';
+    const name=document.getElementById('fillInvoiceUpload')?.files?.[0]?.name || p.invoice || '';
+    p.method=method;p.invoice=name;p.status='待财务审核';
+    saveState();closeModal();renderAll();
+    showToast(`${p.id} 已补资料，状态更新为待财务审核`);return;
+  }
+  if(type==='creator'||type==='creator-edit'){
+    if(!can('creator.create'))return deny('操作达人');
+    const platforms=readCreatorPlatforms();
+    if(!platforms.length){showToast('请至少填写一个平台和链接');return;}
+    data.platforms=platforms;
+    data.owner=data.owner||autoOwnerName()||'Hebe';
+    data.tags=data.tags||'未分类';
+    delete data.platform;delete data.platformLink;
+    if(type==='creator'){
+      data.id=nextNum('KOL',109,state.creators.length-5);
+      state.creators.unshift(data);
+    }else{
+      const id=e.currentTarget.dataset.creatorId;
+      const idx=state.creators.findIndex(x=>x.id===id);
+      if(idx>=0){data.id=id;state.creators[idx]=Object.assign({},state.creators[idx],data);}
+    }
+    saveState();closeModal();navigate('creators');showToast('已保存');return;
+  }
+  if(type==='quote'||type==='quote-edit'){
+    const platforms=readQuotePlatforms();
+    if(!platforms.length){showToast('请至少填写一个平台和视频数');return;}
+    if(type==='quote'){
+      if(!can('quote.create'))return deny('提交报价');
+      data.id=nextNum('QT',262,state.quotes.length-4);
+      data.status='待审核';
+      data.owner=data.owner||autoOwnerName()||'Hebe';
+      data.currency=currencyForCreator(data.creator);
+      data.amount=Number(data.amount)||0;
+      data.amountUSD=toUSD(data.amount,data.currency);
+      data.adDays=Number(data.adDays)||0;
+      data.platforms=platforms;
+      data.history=[];
+      state.quotes.unshift(data);
+    }else{
+      const id=e.currentTarget.dataset.quoteId;
+      const q=state.quotes.find(x=>x.id===id);if(!q){closeModal();return;}
+      if(!canEditQuote(q))return deny('修改此报价');
+      data.id=id;data.status='待审核';
+      data.owner=data.owner||q.owner;
+      data.currency=currencyForCreator(data.creator);
+      data.amount=Number(data.amount)||0;
+      data.amountUSD=toUSD(data.amount,data.currency);
+      data.adDays=Number(data.adDays)||0;
+      data.platforms=platforms;
+      data.history=q.history||[];
+      Object.assign(q,data);
+    }
+    saveState();closeModal();navigate('quotes');showToast('已保存');return;
+  }
+  if(type==='delivery'||type==='delivery-edit'){
+    if(type==='delivery' && !can('delivery.create'))return deny('提交交付资料');
+    const videos=readDeliveryVideos();
+    if(!videos.length){showToast('请至少填写一条视频');return;}
+    if(!data.project){showToast('请先选择合作单');return;}
+    if(type==='delivery'){
+      data.id=nextNum('VD',83,state.deliveries.length-3);
+      data.videos=videos;data.status='待审核';
+      delete data.platform;delete data.link;delete data.code;delete data.expiry;
+      state.deliveries.unshift(data);
+    }else{
+      const id=e.currentTarget.dataset.deliveryId;
+      const d=state.deliveries.find(x=>x.id===id);if(!d){closeModal();return;}
+      if(!canEditDelivery(d))return deny('修改交付');
+      // creator / project 已在表单里 readonly 锁定，用原值
+      d.videos=videos;
+      d.status='待审核';
+      Object.assign(d,{videos,status:'待审核'});
+    }
+    saveState();closeModal();navigate('deliveries');showToast('已保存');return;
+  }
+});
+
+/* ========== CSV ========== */
+function exportCSV(type){
+  const list=state[type]||[];if(!list.length)return showToast('没有可导出的记录');
+  const keys=[...new Set(list.flatMap(o=>Object.keys(o)))];
+  const csv=[keys.join(','),...list.map(o=>keys.map(k=>{
+    let v=o[k]; if(Array.isArray(v)) v=v.map(x=>Object.values(x).join('|')).join(' ; ');
+    return '"'+String(v??'').replace(/"/g,'""')+'"';
+  }).join(','))].join('\r\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='kol-'+type+'.csv';a.click();URL.revokeObjectURL(a.href);
+  showToast('CSV 已导出');
+}
+
+/* ========== 全局搜索 ========== */
+document.getElementById('globalSearch').addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const q=e.target.value.toLowerCase();if(!q)return;
+  const hitCreator=state.creators.some(c=>[c.name,c.email,c.id,(c.platforms||[]).map(p=>p.platform).join(' ')].join(' ').toLowerCase().includes(q));
+  const hitProject=state.projects.some(p=>[p.id,p.campaign,p.creator].join(' ').toLowerCase().includes(q));
+  const hitContract=state.contracts.some(c=>[c.id,c.creator].join(' ').toLowerCase().includes(q));
+  if(hitCreator && canVisit('creators')){
+    navigate('creators');
+    const input=document.querySelector('#creatorSearch');
+    if(input){input.value=e.target.value;input.dispatchEvent(new Event('input'));}
+    return;
+  }
+  if(hitProject && canVisit('overview')){
+    navigate('overview');
+    const input=document.getElementById('projectSearch');
+    if(input){input.value=e.target.value;input.dispatchEvent(new Event('input'));}
+    showToast('已定位到总览页的合作项目');return;
+  }
+  if(hitContract && canVisit('contracts')){
+    navigate('contracts');
+    const input=document.getElementById('contractSearch');
+    if(input){input.value=e.target.value;input.dispatchEvent(new Event('input'));}
+    return;
+  }
+  if(hitCreator || hitProject || hitContract) showToast('该结果所在页面当前身份无权访问');
+  else showToast('没有找到匹配项，请尝试昵称、项目编号或合同编号。');
+});
+
+/* ========== 渲染入口 ========== */
+function renderAll(){
+  renderActionSlots();
+  renderOverview();renderCreators();renderQuotes();
+  renderContracts();renderDeliveries();renderPayments();
+  renderPermissionMatrix();
+  const payStats=document.getElementById('paymentStatsBlock');
+  if(payStats) payStats.style.display=showPaymentStats()?'':'none';
+}
+
+/* ========== 初始化 ========== */
+renderLogin();
+renderNav();
+renderUser();
+renderPermissionHint();
+
+if(currentUser){
+  hideLogin();
+  currentPage=role().pages[0];
+  navigate(currentPage);
+}else{
+  showLogin();
+}
+</script>
+</body>
+</html>
