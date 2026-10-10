@@ -78,24 +78,7 @@ button { cursor: pointer; }
 .history-item .row span { color:var(--muted); }
 .dash { color:var(--muted); }
 
-/* ========== select 外观统一（自定义箭头 + 跟 input 一致） ========== */
-.filter, .field select, .multi-item select {
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23172033' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 12px;
-  padding-right: 30px;
-  cursor: pointer;
-}
-@media (prefers-color-scheme: dark) {
-  .filter, .field select, .multi-item select {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23edf2fb' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-  }
-}
-
-/* ========== .filter 样式对齐弹窗输入框（按 11px 字号等比例缩小） ========== */
+/* ========== .filter 样式（搜索框 + 筛选下拉 通用外观） ========== */
 .filter {
   border: 1px solid var(--border);
   background-color: var(--surface2);
@@ -106,7 +89,24 @@ button { cursor: pointer; }
   outline: none;
 }
 .filter:focus { border-color: var(--accent); }
-select.filter { padding-right: 28px; background-position: right 9px center; background-size: 11px; }
+
+/* ========== 只给 select 加自定义箭头（下拉框专用） ========== */
+select.filter, .field select, .multi-item select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23172033' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 11px;
+  padding-right: 28px;
+  cursor: pointer;
+}
+select.filter { background-position: right 9px center; }
+@media (prefers-color-scheme: dark) {
+  select.filter, .field select, .multi-item select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23edf2fb' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  }
+}
 
 .login-screen { position:fixed; inset:0; background:linear-gradient(135deg,color-mix(in srgb,var(--accent-soft) 60%,var(--bg)),var(--bg)); z-index:50; display:flex; align-items:center; justify-content:center; padding:24px; }
 .login-screen.hidden { display:none; }
@@ -333,8 +333,8 @@ select.filter { padding-right: 28px; background-position: right 9px center; back
 
 <script>
 /* ========== 常量 ========== */
-const STORAGE_KEY='kol-ops-demo-v24';
-const USER_KEY='kol-ops-user-v24';
+const STORAGE_KEY='kol-ops-demo-v25';
+const USER_KEY='kol-ops-user-v25';
 const titles={overview:'总览',creators:'达人库',quotes:'报价管理',contracts:'合同管理',deliveries:'视频交付',payments:'付款管理',team:'团队与权限'};
 const currencyByRegion={'日本':'JPY','美国':'USD','印尼':'IDR','菲律宾':'PHP','英国':'GBP'};
 const demoUsdRates={USD:1,JPY:0.0067,IDR:0.000061,PHP:0.0175,GBP:1.29};
@@ -1314,7 +1314,7 @@ function bindQuoteCurrency(){
   sync();
 }
 
-/* ========== 交付弹窗（修改时锁定达人+合作单） ========== */
+/* ========== 交付弹窗 ========== */
 function openDeliveryModal(id){
   const editing = id ? state.deliveries.find(x=>x.id===id) : null;
   if(id && !editing)return;
